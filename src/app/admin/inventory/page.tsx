@@ -31,7 +31,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { getAuth, signOut } from 'firebase/auth';
 import { app, db, storage } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { ref, deleteObject } from "firebase/storage";
 import { Button } from '@/components/ui/button';
 import {
@@ -94,6 +94,34 @@ function InventoryContent() {
     useEffect(() => {
         fetchProducts();
     }, [fetchProducts]);
+
+    const handleBestSellerToggle = async (product: any, isChecked: boolean) => {
+        const optimisticProducts = products.map(p => 
+            p.id === product.id ? { ...p, isBestSeller: isChecked } : p
+        );
+        setProducts(optimisticProducts);
+
+        try {
+            const productRef = doc(db, "products", product.id);
+            await updateDoc(productRef, {
+                isBestSeller: isChecked
+            });
+            toast({
+                title: 'Success!',
+                description: `${product.name} has been updated.`,
+            });
+        } catch (error) {
+            console.error("Error updating best seller status: ", error);
+            // Revert optimistic update on error
+            setProducts(products);
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: 'Failed to update best seller status.',
+            });
+        }
+    };
+
 
     const handleDelete = async () => {
         if (!productToDelete) return;
@@ -184,8 +212,8 @@ function InventoryContent() {
                                         <TableCell className="text-center">
                                             <Switch
                                                 checked={product.isBestSeller}
+                                                onCheckedChange={(isChecked) => handleBestSellerToggle(product, isChecked)}
                                                 aria-label="Toggle best seller status"
-                                                disabled
                                             />
                                         </TableCell>
                                         <TableCell className="text-right">
