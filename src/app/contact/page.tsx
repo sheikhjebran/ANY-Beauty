@@ -105,7 +105,7 @@ export default function ContactPage() {
                     <MapPin className="h-6 w-6 text-primary mt-1" />
                     <div>
                       <h4 className="font-semibold text-foreground">Our Location</h4>
-                      <p>123 Beauty Lane, Glamour City, 110011</p>
+                      <p>Karnataka, Bangalore</p>
                     </div>
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export default function ContactPage() {
                 </h3>
                 <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden border">
                    <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3502.175217997933!2d77.2177573150821!3d28.62450598242075!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390cfd3ed2da5a29%3A0x1b02131234567890!2sIndia%20Gate!5e0!3m2!1sen!2sin!4v1622612345678!5m2!1sen!2sin"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d248849.8865325852!2d77.49085459638108!3d12.95395999583343!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1670c9b44e6d%3A0xf80c235421204073!2sBengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1678886355893!5m2!1sen!2sin"
                     width="100%"
                     height="350"
                     style={{ border: 0 }}
