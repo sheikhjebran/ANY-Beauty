@@ -4,8 +4,34 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
-import { Footer } from '@/components/footer';
+import {
+  LogOut,
+  LayoutDashboard,
+  Package,
+  Palette,
+  User,
+  PanelLeft,
+} from 'lucide-react';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarTrigger,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+import Link from 'next/link';
+
+const menuItems = [
+  { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/admin/inventory', icon: Package, label: 'Inventory' },
+  { href: '/admin/customization', icon: Palette, label: 'Customization' },
+  { href: '/admin/profile', icon: User, label: 'Profile' },
+];
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -13,7 +39,8 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     setIsClient(true);
-    const isAuthenticated = sessionStorage.getItem('isAdminAuthenticated') === 'true';
+    const isAuthenticated =
+      sessionStorage.getItem('isAdminAuthenticated') === 'true';
     if (!isAuthenticated) {
       router.replace('/admin');
     }
@@ -29,25 +56,59 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <header className="sticky top-0 z-40 w-full border-b bg-background">
-        <div className="container flex h-16 items-center justify-between">
-            <h1 className="text-2xl font-bold text-primary">AYN Beauty Admin</h1>
-            <Button onClick={handleLogout} variant="ghost" size="icon">
-              <LogOut className="h-5 w-5" />
-              <span className="sr-only">Logout</span>
-            </Button>
-        </div>
-      </header>
-      <main className="flex-grow container mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-4">
-            <h2 className="text-4xl font-headline font-bold">Admin Dashboard</h2>
-            <p className="text-lg text-muted-foreground">
-              Welcome, Admin! You can manage your store from here.
-            </p>
-        </div>
-      </main>
-      <Footer />
-    </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen bg-background">
+        <Sidebar>
+          <SidebarHeader>
+            <h2 className="text-2xl font-bold text-primary px-2">AYN Beauty</h2>
+          </SidebarHeader>
+          <SidebarContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.label}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={item.href === '/admin/dashboard'}
+                  >
+                    <Link href={item.href}>
+                      <item.icon />
+                      <span>{item.label}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarContent>
+          <SidebarFooter>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton onClick={handleLogout}>
+                        <LogOut />
+                        <span>Logout</span>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarFooter>
+        </Sidebar>
+        <SidebarInset>
+          <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+            <SidebarTrigger className="md:hidden">
+              <PanelLeft />
+            </SidebarTrigger>
+            <h1 className="text-xl font-semibold text-primary">Dashboard</h1>
+          </header>
+          <main className="flex-grow p-6">
+            <div className="text-left space-y-4">
+              <h2 className="text-3xl font-headline font-bold">
+                Welcome, Admin!
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                You can manage your store from here.
+              </p>
+            </div>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }
