@@ -150,7 +150,7 @@ function AddProductForm() {
            <div className="grid grid-cols-2 gap-6">
                 <div className="grid gap-3">
                     <Label htmlFor="price">Price (₹)</Label>
-                    <Input id="price" type="number" {...register('price')} placeholder="e.g. 59.99" step="0.01" disabled={isSubmitting} />
+                    <Input id="price" type="number" {...register('price')} placeholder="e.g. 5999" step="0.01" disabled={isSubmitting} />
                     {errors.price && <p className="text-sm text-destructive">{errors.price.message as string}</p>}
                 </div>
                 <div className="grid gap-3">
