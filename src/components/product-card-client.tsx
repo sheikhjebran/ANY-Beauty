@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 interface Product {
   id: string;
@@ -120,22 +121,24 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
           {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}
         </p>
       </CardHeader>
-      <CardFooter className="flex-col items-start gap-4">
-        <div className="flex items-center gap-2 w-full">
+      <CardFooter className="flex-col items-start gap-3 w-full">
+        <div className="w-full space-y-2">
+            <Label htmlFor={`quantity-${product.id}`} className="text-xs font-medium text-muted-foreground">QUANTITY</Label>
             <Input
+                id={`quantity-${product.id}`}
                 type="number"
                 min="1"
                 max={product.quantity}
                 value={quantity}
                 onChange={handleQuantityChange}
-                className="w-20 text-center"
+                className="w-full text-center"
                 disabled={isOutOfStock}
             />
-            <Button onClick={handleAddToCart} disabled={isOutOfStock} className="w-full">
-                <ShoppingCart className="mr-2 h-4 w-4" />
-                Add to Cart
-            </Button>
         </div>
+        <Button onClick={handleAddToCart} disabled={isOutOfStock} className="w-full">
+            <ShoppingCart className="mr-2 h-4 w-4" />
+            Add to Cart
+        </Button>
       </CardFooter>
     </Card>
   );
