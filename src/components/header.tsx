@@ -68,10 +68,8 @@ export function Header() {
         const productsRef = collection(db, "products");
         const lowercasedQuery = searchVal.toLowerCase();
         
-        // Firestore doesn't support case-insensitive or partial text search natively.
-        // The common workaround is to fetch all and filter client-side, 
-        // but for larger datasets, a search service like Algolia or Elasticsearch is recommended.
-        // For this app's scale, fetching and filtering is acceptable.
+        const q = query(productsRef, where('name', '>=', lowercasedQuery), where('name', '<=', lowercasedQuery + '\uf8ff'));
+        
         const querySnapshot = await getDocs(productsRef);
         const allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
 
@@ -182,8 +180,16 @@ export function Header() {
         </div>
 
         <div className="flex justify-center w-1/3">
-          <Link href="/" className="text-3xl font-headline font-bold text-primary">
-            AYN Beauty
+          <Link href="/" className="flex items-center gap-2 text-3xl font-headline font-bold text-primary">
+            <Image 
+              src="https://placehold.co/40x40.png"
+              alt="AYN Beauty Logo"
+              width={40}
+              height={40}
+              className="rounded-full"
+              data-ai-hint="abstract logo"
+            />
+            <span>AYN Beauty</span>
           </Link>
         </div>
 
