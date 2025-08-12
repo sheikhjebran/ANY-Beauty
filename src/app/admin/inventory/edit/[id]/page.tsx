@@ -61,14 +61,8 @@ const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
   category: z.string().min(1, 'Category is required'),
   isBestSeller: z.boolean(),
-  price: z.preprocess(
-    (a) => parseFloat(z.string().parse(a)),
-    z.number().positive('Price must be a positive number')
-  ),
-  quantity: z.preprocess(
-    (a) => parseInt(z.string().parse(a), 10),
-    z.number().int().nonnegative('Quantity must be a non-negative integer')
-  ),
+  price: z.any().transform(val => Number(val)).refine(val => val > 0, { message: 'Price must be a positive number' }),
+  quantity: z.any().transform(val => Number(val)).refine(val => Number.isInteger(val) && val >= 0, { message: 'Quantity must be a non-negative integer' }),
   images: z.any().optional(),
 });
 
@@ -142,7 +136,7 @@ function EditProductForm() {
 
     useEffect(() => {
       const currentFiles = newImageFiles ? Array.from(newImageFiles).filter((file: unknown): file is File => file instanceof File) : [];
-      if (currentFiles.length === 0 && !imagesHaveChanged) { // Only update previews if there are new files or changes
+      if (currentFiles.length === 0 && !imagesHaveChanged) { 
         setImagePreviews([...existingImageUrls]);
         return;
       }
@@ -182,14 +176,12 @@ function EditProductForm() {
         setIsSubmitting(true);
         try {
             const productUpdateData: any = {
-                name: data.name,
-                category: data.category,
-                isBestSeller: data.isBestSeller,
+                ...data, // Start with all validated form data
                 price: Math.round(data.price * 100),
-                quantity: data.quantity,
                 hint: `${data.name.toLowerCase()} product`,
-                images: existingImageUrls, // Start with existing images
             };
+            
+            let finalImageUrls = [...existingImageUrls];
 
             if (imagesHaveChanged) {
                 // 1. Delete images marked for removal from Storage
@@ -215,13 +207,18 @@ function EditProductForm() {
                 }
                 
                 // 3. Combine existing (and not removed) and newly uploaded URLs
-                productUpdateData.images = [...existingImageUrls, ...uploadedImageUrls];
+                finalImageUrls = [...existingImageUrls, ...uploadedImageUrls];
             }
             
+            productUpdateData.images = finalImageUrls;
+
             // 4. Ensure there's a placeholder if no images exist
             if (productUpdateData.images.length === 0) {
                 productUpdateData.images.push(`https://placehold.co/400x400.png?text=${encodeURIComponent(data.name)}`);
             }
+            
+            delete productUpdateData.images; // We will set it separately
+            productUpdateData.images = finalImageUrls;
 
             // 5. Update Firestore
             const docRef = doc(db, 'products', productId);
@@ -363,7 +360,7 @@ function EditProductForm() {
                         const currentFiles = watch('images') || [];
                         const combined = [...currentFiles, ...newFiles];
                         const dataTransfer = new DataTransfer();
-                        combined.forEach(file => dataTransfer.items.add(file));
+                        combined.forEach(file => dataTransfer.items.add(file as File));
                         setValue('images', dataTransfer.files, { shouldValidate: true });
                       }
                     }}
