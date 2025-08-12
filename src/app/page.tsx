@@ -73,7 +73,7 @@ export default function Home() {
         </section>
         
         <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
-            <h2 className="text-4xl font-headline font-bold text-center mb-12">Featured Products</h2>
+            <h2 className="text-4xl font-headline font-bold text-center mb-12">Best selling products</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {featuredProducts.map((product) => (
                 <Card key={product.name} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group">
