@@ -141,18 +141,19 @@ function EditProductForm() {
     }, [productId, reset, router, toast]);
 
     useEffect(() => {
-        if (newImageFiles && newImageFiles.length > 0) {
-            const currentFiles = Array.from(newImageFiles).filter((file: unknown): file is File => file instanceof File);
-            if(currentFiles.length === 0) return;
-
-            const newPreviews = currentFiles.map((file: File) => URL.createObjectURL(file));
-                
-            setImagePreviews([...existingImageUrls, ...newPreviews]);
-        
-            return () => {
-                newPreviews.forEach(url => URL.revokeObjectURL(url));
-            };
-        }
+      const currentFiles = newImageFiles ? Array.from(newImageFiles).filter((file: unknown): file is File => file instanceof File) : [];
+      if (currentFiles.length === 0) {
+        // No new files selected, just show existing ones
+        setImagePreviews([...existingImageUrls]);
+        return;
+      }
+      
+      const newPreviews = currentFiles.map((file: File) => URL.createObjectURL(file));
+      setImagePreviews([...existingImageUrls, ...newPreviews]);
+  
+      return () => {
+          newPreviews.forEach(url => URL.revokeObjectURL(url));
+      };
     }, [newImageFiles, existingImageUrls]);
 
 
@@ -174,11 +175,23 @@ function EditProductForm() {
         
         // Remove from the form's file list if it's a new file
         const currentFiles = Array.from(watch('images') || []) as File[];
-        const updatedFiles = currentFiles.filter(file => {
-             const url = URL.createObjectURL(file);
-             const match = url === imageUrlToRemove;
-             if(match) URL.revokeObjectURL(url);
-             return !match;
+
+        const isNewFile = (file: File) => {
+          try {
+            const url = URL.createObjectURL(file);
+            URL.revokeObjectURL(url);
+            return url === imageUrlToRemove;
+          } catch (e) {
+            return false;
+          }
+        }
+        
+        const updatedFiles = currentFiles.filter((file, index) => {
+            // A bit of a hacky way to match the file with its preview URL
+            if(indexToRemove >= existingImageUrls.length) {
+                return (indexToRemove - existingImageUrls.length) !== index;
+            }
+            return true;
         });
 
         const dataTransfer = new DataTransfer();
