@@ -67,7 +67,7 @@ const productSchema = z.object({
     (a) => parseInt(z.string().parse(a), 10),
     z.number().int().nonnegative('Quantity must be a non-negative integer')
   ),
-  images: z.array(z.instanceof(File)).min(1, 'At least one image is required'),
+  images: z.any().refine((files) => files?.length >= 1, 'At least one image is required.'),
 });
 
 
@@ -84,7 +84,7 @@ function AddProductForm() {
         isBestSeller: false,
         price: 0,
         quantity: 0,
-        images: [],
+        images: undefined,
     }
   });
 
@@ -92,7 +92,7 @@ function AddProductForm() {
 
   useEffect(() => {
     if (images && images.length > 0) {
-      const previews = Array.from(images).map(file => URL.createObjectURL(file));
+      const previews = Array.from(images).map((file: any) => URL.createObjectURL(file as Blob));
       setImagePreviews(previews);
       return () => previews.forEach(url => URL.revokeObjectURL(url));
     } else {
@@ -101,7 +101,8 @@ function AddProductForm() {
   }, [images]);
 
   const removeImage = (indexToRemove: number) => {
-    const updatedImages = images.filter((_, index) => index !== indexToRemove);
+    const currentImages = watch('images');
+    const updatedImages = Array.from(currentImages).filter((_, index) => index !== indexToRemove);
     setValue('images', updatedImages, { shouldValidate: true });
   }
 
@@ -110,8 +111,8 @@ function AddProductForm() {
     try {
       const imageUrls: string[] = [];
       for (const imageFile of data.images) {
-        const storageRef = ref(storage, `products/${uuidv4()}-${imageFile.name}`);
-        await uploadBytes(storageRef, imageFile);
+        const storageRef = ref(storage, `products/${uuidv4()}-${(imageFile as File).name}`);
+        await uploadBytes(storageRef, imageFile as Blob);
         const downloadURL = await getDownloadURL(storageRef);
         imageUrls.push(downloadURL);
       }
@@ -150,6 +151,8 @@ function AddProductForm() {
         setIsSubmitting(false);
     }
   };
+  
+  const fileRef = register("images");
 
   return (
     <Card>
@@ -215,6 +218,7 @@ function AddProductForm() {
                   className="hidden"
                   accept="image/*"
                   disabled={isSubmitting}
+                  {...fileRef}
                   onChange={(e) => {
                     if (e.target.files) {
                       const newFiles = Array.from(e.target.files);
@@ -231,7 +235,7 @@ function AddProductForm() {
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
                   {imagePreviews.map((src, index) => (
                     <div key={index} className="relative group aspect-square">
-                      <Image src={src} alt={`Preview ${index}`} layout="fill" className="rounded-md object-cover"/>
+                      <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover"/>
                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <Button variant="destructive" size="icon" type="button" onClick={() => removeImage(index)} disabled={isSubmitting}>
                               <X className="h-4 w-4" />
@@ -366,3 +370,5 @@ export default function AddProductPage() {
     </SidebarProvider>
   );
 }
+
+    
