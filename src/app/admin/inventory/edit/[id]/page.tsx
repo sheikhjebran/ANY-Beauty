@@ -83,6 +83,7 @@ function EditProductForm() {
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
     const [imagesToRemove, setImagesToRemove] = useState<string[]>([]);
+    const [imagesHaveChanged, setImagesHaveChanged] = useState(false);
 
     const { register, handleSubmit, control, formState: { errors }, watch, setValue, reset } = useForm<z.infer<typeof productSchema>>({
         resolver: zodResolver(productSchema),
@@ -115,6 +116,7 @@ function EditProductForm() {
                     });
                     const imageUrls = productData.images || [];
                     setExistingImageUrls(imageUrls);
+                    setImagePreviews(imageUrls);
                 } else {
                     toast({
                         variant: 'destructive',
@@ -139,10 +141,11 @@ function EditProductForm() {
     }, [productId, reset, router, toast]);
 
     useEffect(() => {
-        if (newImageFiles) {
-            const newPreviews = Array.from(newImageFiles)
-                .filter((file: unknown): file is File => file instanceof File)
-                .map((file: File) => URL.createObjectURL(file));
+        if (newImageFiles && newImageFiles.length > 0) {
+            const currentFiles = Array.from(newImageFiles).filter((file: unknown): file is File => file instanceof File);
+            if(currentFiles.length === 0) return;
+
+            const newPreviews = currentFiles.map((file: File) => URL.createObjectURL(file));
                 
             setImagePreviews([...existingImageUrls, ...newPreviews]);
         
@@ -154,76 +157,82 @@ function EditProductForm() {
 
 
     const removeImage = (indexToRemove: number) => {
+        setImagesHaveChanged(true);
         const imageUrlToRemove = imagePreviews[indexToRemove];
         
-        // Check if it's an existing image url
+        // Check if it's an existing image url that needs to be deleted from storage
         const existingUrlIndex = existingImageUrls.indexOf(imageUrlToRemove);
         if (existingUrlIndex > -1) {
             setExistingImageUrls(prev => prev.filter(url => url !== imageUrlToRemove));
-            // If it's a firebase storage url, add to removal queue
-            if (imageUrlToRemove.includes('firebasestorage.googleapis.com')) {
+             if (imageUrlToRemove.includes('firebasestorage.googleapis.com')) {
                 setImagesToRemove(prev => [...prev, imageUrlToRemove]);
             }
-        } else {
-             // It's a new file preview, remove it from the form's file list
-             const currentFiles = Array.from(watch('images') || []) as File[];
-             const updatedFiles = currentFiles.filter(file => {
-                 const url = URL.createObjectURL(file);
-                 const match = url === imageUrlToRemove;
-                 URL.revokeObjectURL(url); // clean up immediately
-                 return !match;
-             });
-
-             const dataTransfer = new DataTransfer();
-             updatedFiles.forEach(file => dataTransfer.items.add(file));
-             setValue('images', dataTransfer.files, { shouldValidate: true });
         }
+        
+        // Remove from the preview list
+        setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
+        
+        // Remove from the form's file list if it's a new file
+        const currentFiles = Array.from(watch('images') || []) as File[];
+        const updatedFiles = currentFiles.filter(file => {
+             const url = URL.createObjectURL(file);
+             const match = url === imageUrlToRemove;
+             if(match) URL.revokeObjectURL(url);
+             return !match;
+        });
+
+        const dataTransfer = new DataTransfer();
+        updatedFiles.forEach(file => dataTransfer.items.add(file));
+        setValue('images', dataTransfer.files, { shouldValidate: true });
     }
 
 
     const onSubmit = async (data: z.infer<typeof productSchema>) => {
         setIsSubmitting(true);
         try {
-            // Delete images marked for removal
-            for (const imageUrl of imagesToRemove) {
-                try {
-                    const imageRef = ref(storage, imageUrl);
-                    await deleteObject(imageRef);
-                } catch (error) {
-                    console.warn(`Failed to delete image ${imageUrl}:`, error);
-                }
-            }
-
-            const uploadedImageUrls: string[] = [];
-            const newFiles = data.images ? Array.from(data.images) : [];
-
-            // Upload new images
-            for (const imageFile of newFiles) {
-                if (imageFile instanceof File) {
-                    const storageRef = ref(storage, `products/${uuidv4()}-${imageFile.name}`);
-                    await uploadBytes(storageRef, imageFile);
-                    const downloadURL = await getDownloadURL(storageRef);
-                    uploadedImageUrls.push(downloadURL);
-                }
-            }
-
-            const finalImageUrls = [...existingImageUrls, ...uploadedImageUrls];
-
-            if (finalImageUrls.length === 0) {
-                finalImageUrls.push(`https://placehold.co/400x400.png?text=${encodeURIComponent(data.name)}`);
-            }
-
-            const updatedProduct = {
+            const productUpdateData: any = {
                 ...data,
                 price: Math.round(data.price * 100), // Store price in cents
-                images: finalImageUrls,
                 hint: `${data.name.toLowerCase()} product`,
             };
             
-            delete (updatedProduct as any).newImageFiles;
+            if (imagesHaveChanged) {
+                // 1. Delete images marked for removal from storage
+                for (const imageUrl of imagesToRemove) {
+                    try {
+                        const imageRef = ref(storage, imageUrl);
+                        await deleteObject(imageRef);
+                    } catch (error) {
+                        console.warn(`Failed to delete image ${imageUrl}:`, error);
+                    }
+                }
+    
+                // 2. Upload new images to storage
+                const uploadedImageUrls: string[] = [];
+                const newFiles = data.images ? Array.from(data.images) : [];
+    
+                for (const imageFile of newFiles) {
+                    if (imageFile instanceof File) {
+                        const storageRef = ref(storage, `products/${uuidv4()}-${imageFile.name}`);
+                        await uploadBytes(storageRef, imageFile);
+                        const downloadURL = await getDownloadURL(storageRef);
+                        uploadedImageUrls.push(downloadURL);
+                    }
+                }
+    
+                // 3. Construct the final image array
+                let finalImageUrls = [...existingImageUrls, ...uploadedImageUrls];
+    
+                if (finalImageUrls.length === 0) {
+                    finalImageUrls.push(`https://placehold.co/400x400.png?text=${encodeURIComponent(data.name)}`);
+                }
+                productUpdateData.images = finalImageUrls;
+            } else {
+                delete productUpdateData.images; // Don't update images if they haven't changed
+            }
 
             const docRef = doc(db, 'products', productId);
-            await updateDoc(docRef, updatedProduct);
+            await updateDoc(docRef, productUpdateData);
 
             toast({
                 title: 'Product Updated!',
@@ -355,6 +364,7 @@ function EditProductForm() {
                     disabled={isSubmitting}
                     {...fileRef}
                     onChange={(e) => {
+                      setImagesHaveChanged(true);
                       if (e.target.files) {
                         const newFiles = Array.from(e.target.files);
                         const currentFiles = watch('images') || [];
