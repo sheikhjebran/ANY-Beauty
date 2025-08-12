@@ -1,9 +1,27 @@
 import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { ChevronDown } from 'lucide-react';
 
 const navItems = [
   { name: 'Home', href: '/' },
   { name: 'All Products', href: '/products' },
-  { name: 'Categories', href: '/categories' },
+  { 
+    name: 'Categories', 
+    href: '/categories',
+    subItems: [
+        { name: 'SkinCare', href: '/categories/skincare' },
+        { name: 'Lips', href: '/categories/lips' },
+        { name: 'Bath & Body', href: '/categories/bath-body' },
+        { name: 'Fragrances', href: '/categories/fragrances' },
+        { name: 'Eyes', href: '/categories/eyes' },
+        { name: 'Nails', href: '/categories/nails' },
+    ]
+  },
   { name: 'Contact Us', href: '/contact' },
 ];
 
@@ -14,12 +32,28 @@ export function MainNav() {
         <ul className="flex items-center space-x-6 lg:space-x-10">
           {navItems.map((item) => (
             <li key={item.name}>
-              <Link
-                href={item.href}
-                className="text-lg font-headline text-foreground/70 transition-colors hover:text-primary"
-              >
-                {item.name}
-              </Link>
+              {item.subItems ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-1 text-lg font-headline text-foreground/70 transition-colors hover:text-primary focus:outline-none">
+                    {item.name}
+                    <ChevronDown className="h-4 w-4" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    {item.subItems.map((subItem) => (
+                      <DropdownMenuItem key={subItem.name} asChild>
+                        <Link href={subItem.href}>{subItem.name}</Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <Link
+                  href={item.href}
+                  className="text-lg font-headline text-foreground/70 transition-colors hover:text-primary"
+                >
+                  {item.name}
+                </Link>
+              )}
             </li>
           ))}
         </ul>
