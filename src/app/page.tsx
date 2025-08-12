@@ -6,60 +6,38 @@ import { Footer } from '@/components/footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
+import { db } from '@/lib/firebase';
+import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 
-const featuredProducts = [
-  {
-    name: 'Radiant Glow Serum',
-    price: '₹5999',
-    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=400&h=400&auto=format&fit=crop',
-    hint: 'serum bottle'
-  },
-  {
-    name: 'Velvet Touch Lipstick',
-    price: '₹2499',
-    image: 'https://images.unsplash.com/photo-1586455122346-6ce18e1a2f9a?q=80&w=400&h=400&auto=format&fit=crop',
-    hint: 'lipstick product'
-  },
-  {
-    name: 'Silk Finish Foundation',
-    price: '₹4500',
-    image: 'https://images.unsplash.com/photo-1620464294339-a78b541604a3?q=80&w=400&h=400&auto=format&fit=crop',
-    hint: 'foundation cosmetics'
-  },
-  {
-    name: 'Night Repair Cream',
-    price: '₹6800',
-    image: 'https://images.unsplash.com/photo-1600868299713-1a2c394874c4?q=80&w=400&h=400&auto=format&fit=crop',
-    hint: 'face cream'
-  }
-];
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  images: string[];
+  hint?: string;
+}
 
-const newlyAddedProducts = [
-  {
-    name: 'Hydrating Face Mist',
-    price: '₹1999',
-    image: 'https://images.unsplash.com/photo-1563806280034-7c3e5a3a2d83?q=80&w=400&h=400&auto=format&fit=crop',
-    hint: 'face mist'
-  },
-  {
-    name: 'Matte Liquid Eyeliner',
-    price: '₹2800',
-    image: 'https://images.unsplash.com/photo-1629198715873-1a485552424b?q=80&w=400&h=400&auto=format&fit=crop',
-    hint: 'eyeliner product'
-  },
-  {
-    name: 'Exfoliating Body Scrub',
-    price: '₹4200',
-    image: 'https://images.unsplash.com/photo-1628398849787-a8b273b4b74a?q=80&w=400&h=400&auto=format&fit=crop',
-    hint: 'body scrub'
-  },
-  {
-    name: 'Cuticle Care Oil',
-    price: '₹1800',
-    image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=400&h=400&auto=format&fit=crop',
-    hint: 'cuticle oil'
+async function getBestSellingProducts(): Promise<Product[]> {
+  try {
+    const q = query(collection(db, 'products'), where('isBestSeller', '==', true), limit(4));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+  } catch (error) {
+    console.error("Error fetching best selling products: ", error);
+    return [];
   }
-];
+}
+
+async function getNewlyAddedProducts(): Promise<Product[]> {
+   try {
+    const q = query(collection(db, 'products'), where('isBestSeller', '==', false), limit(4));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+  } catch (error) {
+    console.error("Error fetching newly added products: ", error);
+    return [];
+  }
+}
 
 const categories = [
   { name: 'SkinCare', href: '/categories/skincare', image: 'https://images.unsplash.com/photo-1556228721-e26920387693?q=80&w=300&h=300&auto=format&fit=crop', hint: 'skincare products' },
@@ -70,7 +48,10 @@ const categories = [
   { name: 'Nails', href: '/categories/nails', image: 'https://images.unsplash.com/photo-1604335433189-fcce22e18585?q=80&w=300&h=300&auto=format&fit=crop', hint: 'nail polish' },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const bestSellingProducts = await getBestSellingProducts();
+  const newlyAddedProducts = await getNewlyAddedProducts();
+
   return (
     <div className="flex flex-col min-h-screen bg-background font-body">
       <Header />
@@ -115,12 +96,12 @@ export default function Home() {
         <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
             <h2 className="text-4xl font-headline font-bold text-center mb-12">Best selling products</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {featuredProducts.map((product) => (
-                <Card key={product.name} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group">
+              {bestSellingProducts.map((product) => (
+                <Card key={product.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group">
                    <CardContent className="p-0">
                     <div className="aspect-square overflow-hidden">
                       <Image
-                        src={product.image}
+                        src={product.images?.[0] || 'https://placehold.co/400x400.png'}
                         alt={product.name}
                         width={400}
                         height={400}
@@ -131,7 +112,7 @@ export default function Home() {
                   </CardContent>
                   <CardHeader>
                     <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                    <p className="text-lg text-primary font-semibold">{product.price}</p>
+                    <p className="text-lg text-primary font-semibold">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}</p>
                   </CardHeader>
                 </Card>
               ))}
@@ -153,11 +134,11 @@ export default function Home() {
             <h2 className="text-4xl font-headline font-bold text-center mb-12">Newly Added Products</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {newlyAddedProducts.map((product) => (
-                <Card key={product.name} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group">
+                <Card key={product.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group">
                    <CardContent className="p-0">
                     <div className="aspect-square overflow-hidden">
                       <Image
-                        src={product.image}
+                        src={product.images?.[0] || 'https://placehold.co/400x400.png'}
                         alt={product.name}
                         width={400}
                         height={400}
@@ -168,7 +149,7 @@ export default function Home() {
                   </CardContent>
                   <CardHeader>
                     <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                    <p className="text-lg text-primary font-semibold">{product.price}</p>
+                    <p className="text-lg text-primary font-semibold">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}</p>
                   </CardHeader>
                 </Card>
               ))}
