@@ -177,7 +177,7 @@ function ProductTable({ products, showCategory = false }: { products: any[], sho
                         <TableCell className="font-medium">{product.name}</TableCell>
                         {showCategory && <TableCell>{product.category}</TableCell>}
                         <TableCell className="text-right">{product.quantity}</TableCell>
-                        <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}</TableCell>
+                        <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol' }).format(product.price / 100)}</TableCell>
                         <TableCell>
                             <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/inventory/edit/${product.id}`)}>
                                 <FilePenLine className="h-4 w-4" />

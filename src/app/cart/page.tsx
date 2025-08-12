@@ -123,12 +123,12 @@ export default function CartPage() {
     
     message += `*Order Summary:*\n`;
     cart.forEach(item => {
-        const itemTotal = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format((item.price / 100) * item.quantity);
+        const itemTotal = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol' }).format((item.price / 100) * item.quantity);
         message += `*${item.name}* (Category: ${item.category})\n`;
-        message += `Qty: ${item.quantity} x ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price / 100)} = ${itemTotal}\n\n`;
+        message += `Qty: ${item.quantity} x ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol' }).format(item.price / 100)} = ${itemTotal}\n\n`;
     });
 
-    const formattedTotal = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal);
+    const formattedTotal = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol' }).format(subtotal);
     message += `*Grand Total: ${formattedTotal}*\n\n`;
     message += `Thank you!`;
 
@@ -178,7 +178,7 @@ export default function CartPage() {
                       <h3 className="font-semibold text-lg">{item.name}</h3>
                       <p className="text-sm text-muted-foreground">{item.category}</p>
                       <p className="text-muted-foreground">
-                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price / 100)}
+                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol' }).format(item.price / 100)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -191,7 +191,7 @@ export default function CartPage() {
                         </Button>
                     </div>
                      <p className="w-24 text-right font-semibold">
-                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format((item.price / 100) * item.quantity)}
+                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol' }).format((item.price / 100) * item.quantity)}
                      </p>
                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive" onClick={() => removeItem(item.id)}>
                         <Trash2 className="h-5 w-5" />
@@ -205,12 +205,12 @@ export default function CartPage() {
                     <Separator />
                     <div className="flex justify-between">
                         <span>Subtotal</span>
-                        <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</span>
+                        <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol' }).format(subtotal)}</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between font-bold text-xl">
                         <span>Grand Total</span>
-                        <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</span>
+                        <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol' }).format(subtotal)}</span>
                     </div>
                     <Button className="w-full" size="lg" onClick={() => setIsCheckoutOpen(true)}>
                         Place order on Whatsapp

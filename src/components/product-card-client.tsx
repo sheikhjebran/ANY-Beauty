@@ -126,7 +126,7 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
         <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
         <p className="text-sm text-muted-foreground mt-2">{shortDescription}</p>
         <p className="text-lg text-primary font-semibold pt-2">
-          {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}
+          {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol' }).format(product.price / 100)}
         </p>
       </CardHeader>
       <CardFooter className="flex-col items-start gap-4 w-full">
