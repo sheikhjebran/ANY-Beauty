@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +11,13 @@ import {
   Palette,
   User,
   PanelLeft,
+  ShoppingBag,
+  PackageX,
+  TrendingUp,
+  Clock,
+  ArrowRight,
+  Loader2,
+  FilePenLine,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -26,7 +33,12 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { getAuth, signOut } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
+import { collection, getDocs, query, orderBy, limit } from 'firebase/firestore';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { ProductChart } from '@/components/product-chart';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import Image from 'next/image';
 
 const menuItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -34,6 +46,148 @@ const menuItems = [
   { href: '/admin/customization', icon: Palette, label: 'Customization' },
   { href: '/admin/profile', icon: User, label: 'Profile' },
 ];
+
+function DashboardContent() {
+    const [products, setProducts] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            setIsLoading(true);
+            try {
+                const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+                const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                setProducts(productsData);
+            } catch (error) {
+                console.error("Error fetching products: ", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchProducts();
+    }, []);
+
+    const categoryData = useMemo(() => {
+        const counts = products.reduce((acc, product) => {
+            acc[product.category] = (acc[product.category] || 0) + 1;
+            return acc;
+        }, {} as { [key: string]: number });
+        return Object.keys(counts).map(category => ({
+            name: category,
+            total: counts[category],
+        }));
+    }, [products]);
+
+    const outOfStockProducts = useMemo(() => products.filter(p => p.quantity === 0), [products]);
+    const lowStockProducts = useMemo(() => products.filter(p => p.quantity > 0 && p.quantity < 10), [products]);
+    const bestSellers = useMemo(() => products.filter(p => p.isBestSeller), [products]);
+    const recentlyAdded = useMemo(() => products.slice(0, 5), [products]);
+
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-full"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+    }
+
+    return (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <Card className="col-span-1 lg:col-span-3">
+                <CardHeader>
+                    <CardTitle>Product Category Distribution</CardTitle>
+                    <CardDescription>Number of products in each category.</CardDescription>
+                </CardHeader>
+                <CardContent className="h-80">
+                    <ProductChart data={categoryData} />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><PackageX className="h-5 w-5 text-destructive" /> Out of Stock</CardTitle>
+                    <CardDescription>Products with zero quantity.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ProductTable products={outOfStockProducts} />
+                </CardContent>
+            </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><ShoppingBag className="h-5 w-5 text-yellow-500" /> Low Stock</CardTitle>
+                    <CardDescription>Products with quantity less than 10.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ProductTable products={lowStockProducts} />
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><TrendingUp className="h-5 w-5 text-green-500" /> Best Sellers</CardTitle>
+                    <CardDescription>Products marked as best sellers.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ProductTable products={bestSellers} />
+                </CardContent>
+            </Card>
+            
+            <Card className="col-span-1 lg:col-span-3">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Clock className="h-5 w-5" /> Recently Added Products</CardTitle>
+                    <CardDescription>The last 5 products added to your inventory.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ProductTable products={recentlyAdded} showCategory />
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+function ProductTable({ products, showCategory = false }: { products: any[], showCategory?: boolean }) {
+    const router = useRouter();
+    if (products.length === 0) {
+        return <p className="text-sm text-muted-foreground">No products to display.</p>
+    }
+    return (
+        <Table>
+            <TableHeader>
+                <TableRow>
+                    <TableHead className="w-[64px]">Image</TableHead>
+                    <TableHead>Name</TableHead>
+                    {showCategory && <TableHead>Category</TableHead>}
+                    <TableHead className="text-right">Qty</TableHead>
+                    <TableHead className="text-right">Price</TableHead>
+                    <TableHead className="w-[40px]"></TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {products.map((product) => (
+                    <TableRow key={product.id}>
+                        <TableCell>
+                             <Image
+                                alt={product.name}
+                                className="aspect-square rounded-md object-cover"
+                                height="40"
+                                src={product.images?.[0] || 'https://placehold.co/40x40.png'}
+                                width="40"
+                                data-ai-hint={product.hint}
+                            />
+                        </TableCell>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        {showCategory && <TableCell>{product.category}</TableCell>}
+                        <TableCell className="text-right">{product.quantity}</TableCell>
+                        <TableCell className="text-right">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}</TableCell>
+                        <TableCell>
+                            <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/inventory/edit/${product.id}`)}>
+                                <FilePenLine className="h-4 w-4" />
+                            </Button>
+                        </TableCell>
+                    </TableRow>
+                ))}
+            </TableBody>
+        </Table>
+    )
+}
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -60,7 +214,11 @@ export default function AdminDashboardPage() {
   };
 
   if (!isClient) {
-    return null; // or a loading spinner
+    return (
+         <div className="flex min-h-screen bg-background items-center justify-center">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+         </div>
+    );
   }
 
   return (
@@ -106,14 +264,7 @@ export default function AdminDashboardPage() {
             <h1 className="text-xl font-semibold text-primary">Dashboard</h1>
           </header>
           <main className="flex-grow p-6">
-            <div className="text-left space-y-4">
-              <h2 className="text-3xl font-headline font-bold">
-                Welcome, Admin!
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                You can manage your store from here.
-              </p>
-            </div>
+            <DashboardContent />
           </main>
         </SidebarInset>
       </div>
