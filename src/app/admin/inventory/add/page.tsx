@@ -232,7 +232,7 @@ function AddProductForm() {
              {errors.images && <p className="text-sm text-destructive">{errors.images.message as string}</p>}
 
             {imagePreviews.length > 0 && (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
                   {imagePreviews.map((src, index) => (
                     <div key={index} className="relative group aspect-square">
                       <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover"/>
