@@ -39,7 +39,7 @@ export function Footer() {
           <div className="space-y-4">
             <h4 className="font-semibold uppercase tracking-wider text-foreground">Connect With Us</h4>
             <div className="flex justify-center md:justify-start space-x-4">
-              <Link href="#" aria-label="Instagram">
+              <Link href="https://www.instagram.com/aynbeauty_ae?igsh=MWNqbnl6bjVlYjFydg==" aria-label="Instagram">
                 <Instagram className="h-6 w-6 text-muted-foreground hover:text-primary transition-colors" />
               </Link>
               <Link href="https://youtube.com/@yamenshariff998?si=-Sswkf7comZN2dIO" aria-label="YouTube">
