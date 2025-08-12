@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   LogOut,
   LayoutDashboard,
@@ -49,7 +48,7 @@ const menuItems = [
   { href: '/admin/profile', icon: User, label: 'Profile' },
 ];
 
-const products = [
+const initialProducts = [
   {
     image: 'https://placehold.co/64x64.png',
     hint: 'serum bottle',
@@ -97,7 +96,7 @@ const products = [
   },
 ];
 
-function InventoryContent() {
+function InventoryContent({products, setProducts}: any) {
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -105,9 +104,11 @@ function InventoryContent() {
                     <CardTitle>Products</CardTitle>
                     <CardDescription>Manage your products and their inventory levels.</CardDescription>
                 </div>
-                <Button>
+                <Button asChild>
+                  <Link href="/admin/inventory/add">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add New Product
+                  </Link>
                 </Button>
             </CardHeader>
             <CardContent>
@@ -124,7 +125,7 @@ function InventoryContent() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {products.map((product) => (
+                        {products.map((product: any) => (
                             <TableRow key={product.name}>
                                 <TableCell>
                                     <Image
@@ -172,7 +173,9 @@ function InventoryContent() {
 export default function InventoryPage() {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isClient, setIsClient] = useState(false);
+  const [products, setProducts] = useState(initialProducts);
   const auth = getAuth(app);
 
   useEffect(() => {
@@ -182,7 +185,15 @@ export default function InventoryPage() {
     if (!isAuthenticated) {
       router.replace('/admin');
     }
-  }, [router]);
+    
+    const newProductParam = searchParams.get('newProduct');
+    if (newProductParam) {
+      const newProduct = JSON.parse(newProductParam);
+      setProducts(prevProducts => [newProduct, ...prevProducts]);
+      // Remove the query parameter from the URL
+      router.replace(pathname, undefined);
+    }
+  }, [router, searchParams, pathname]);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -210,7 +221,7 @@ export default function InventoryPage() {
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname === item.href}
+                    isActive={pathname.startsWith(item.href)}
                   >
                     <Link href={item.href}>
                       <item.icon />
@@ -240,7 +251,7 @@ export default function InventoryPage() {
             <h1 className="text-xl font-semibold text-primary">Inventory</h1>
           </header>
           <main className="flex-grow p-6">
-            <InventoryContent />
+            <InventoryContent products={products} setProducts={setProducts} />
           </main>
         </SidebarInset>
       </div>
