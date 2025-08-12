@@ -7,7 +7,7 @@ import { Search, ShoppingBag, User, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import debounce from 'lodash.debounce';
 
@@ -26,29 +26,14 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   const searchRef = useRef<HTMLDivElement>(null);
-
-  // Fetch all products once on component mount
-  useEffect(() => {
-    const fetchAllProducts = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "products"));
-        const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-        setAllProducts(productsData);
-      } catch (error) {
-        console.error("Error fetching all products: ", error);
-      }
-    };
-    fetchAllProducts();
-  }, []);
-
-  const updateCartCount = () => {
+  
+  const updateCartCount = useCallback(() => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
     const totalItems = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
     setCartCount(totalItems);
-  };
+  },[]);
   
   useEffect(() => {
     updateCartCount();
@@ -56,7 +41,7 @@ export function Header() {
     return () => {
       window.removeEventListener('storage', updateCartCount);
     };
-  }, []);
+  }, [updateCartCount]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -72,23 +57,39 @@ export function Header() {
     };
   }, [searchRef]);
 
-  const performSearch = (query: string) => {
-    if (query.length < 3) {
+  const performSearch = async (searchVal: string) => {
+    if (searchVal.length < 3) {
       setSearchResults([]);
       setIsSearching(false);
       return;
     }
     setIsSearching(true);
-    const lowercasedQuery = query.toLowerCase();
-    const filteredProducts = allProducts.filter(product =>
-      product.name.toLowerCase().includes(lowercasedQuery) ||
-      product.description.toLowerCase().includes(lowercasedQuery)
-    );
-    setSearchResults(filteredProducts);
-    setIsSearching(false);
+    try {
+        const productsRef = collection(db, "products");
+        const lowercasedQuery = searchVal.toLowerCase();
+        
+        // Firestore doesn't support case-insensitive or partial text search natively.
+        // The common workaround is to fetch all and filter client-side, 
+        // but for larger datasets, a search service like Algolia or Elasticsearch is recommended.
+        // For this app's scale, fetching and filtering is acceptable.
+        const querySnapshot = await getDocs(productsRef);
+        const allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+
+        const filteredProducts = allProducts.filter(product =>
+          product.name.toLowerCase().includes(lowercasedQuery) ||
+          product.description.toLowerCase().includes(lowercasedQuery)
+        );
+
+        setSearchResults(filteredProducts);
+    } catch (error) {
+        console.error("Error performing search: ", error);
+        setSearchResults([]);
+    } finally {
+        setIsSearching(false);
+    }
   };
 
-  const debouncedSearch = useCallback(debounce(performSearch, 300), [allProducts]);
+  const debouncedSearch = useCallback(debounce(performSearch, 500), []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
