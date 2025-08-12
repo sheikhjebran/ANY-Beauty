@@ -21,14 +21,16 @@ function AdminLoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleSignIn = () => {
     if (email === 'admin@gmail.com' && password === 'admin@123') {
+      sessionStorage.setItem('isAdminAuthenticated', 'true');
       toast({
         title: "Login Successful",
-        description: "Welcome, Admin!",
+        description: "Redirecting to dashboard...",
       });
-      // In a real application, you would redirect to a protected admin dashboard.
+      router.push('/admin/dashboard');
     } else {
       toast({
         variant: "destructive",
@@ -85,10 +87,15 @@ function AdminLoginForm() {
 
 export default function AdminLoginPage() {
   const [isClient, setIsClient] = useState(false)
+  const router = useRouter();
 
   useEffect(() => {
     setIsClient(true)
-  }, [])
+    // If user is already authenticated, redirect to dashboard
+    if (sessionStorage.getItem('isAdminAuthenticated') === 'true') {
+      router.replace('/admin/dashboard');
+    }
+  }, [router])
 
 
   return (
