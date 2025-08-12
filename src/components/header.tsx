@@ -37,7 +37,7 @@ export function Header() {
               aria-label="Toggle search"
               className="z-20"
             >
-              <Search className="h-6 w-6" />
+              <Search className="h-7 w-7" />
             </Button>
             <div
               className={cn(
@@ -67,10 +67,10 @@ export function Header() {
         {/* Right Section: Icons */}
         <div className="flex items-center justify-end gap-6 w-1/3">
           <Link href="/admin" aria-label="Admin Login">
-            <User className="h-6 w-6 text-foreground/80 hover:text-primary transition-colors" />
+            <User className="h-7 w-7 text-foreground/80 hover:text-primary transition-colors" />
           </Link>
           <Link href="/cart" className="relative" aria-label={`Shopping cart with ${cartCount} items`}>
-            <ShoppingCart className="h-6 w-6 text-foreground/80 hover:text-primary transition-colors" />
+            <ShoppingCart className="h-7 w-7 text-foreground/80 hover:text-primary transition-colors" />
             <div className="absolute -top-2 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               {cartCount}
             </div>
