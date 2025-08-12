@@ -27,7 +27,7 @@ export default function AboutPage() {
             </div>
             <div className="aspect-w-1 aspect-h-1">
                 <Image
-                    src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=600&h=600&auto=format&fit=crop"
+                    src="https://images.unsplash.com/photo-1557833042-7c3a64a34a2e?q=80&w=600&h=600&auto=format&fit=crop"
                     alt="About AYN Beauty"
                     width={600}
                     height={600}

@@ -14,9 +14,9 @@ import Autoplay from "embla-carousel-autoplay"
 import { cn } from '@/lib/utils';
 
 const banners = [
-    { src: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1800&h=900&auto=format&fit=crop", alt: "Promotional banner 1", hint: "beauty product" },
-    { src: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1800&h=900&auto=format&fit=crop", alt: "Promotional banner 2", hint: "cosmetics model" },
-    { src: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1800&h=900&auto=format&fit=crop", alt: "Promotional banner 3", hint: "skincare routine" },
+    { src: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?q=80&w=1800&h=900&auto=format&fit=crop", alt: "Promotional banner 1", hint: "cosmetics flatlay" },
+    { src: "https://images.unsplash.com/photo-1557833042-7c3a64a34a2e?q=80&w=1800&h=900&auto=format&fit=crop", alt: "Promotional banner 2", hint: "beauty promotion" },
+    { src: "https://images.unsplash.com/photo-1542803597-937e83955376?q=80&w=1800&h=900&auto=format&fit=crop", alt: "Promotional banner 3", hint: "bath bombs" },
 ]
 
 export function HeroCarousel() {

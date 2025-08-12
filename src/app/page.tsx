@@ -38,7 +38,7 @@ const newlyAddedProducts = [
   {
     name: 'Hydrating Face Mist',
     price: '$25',
-    image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=400&h=400&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1563806280034-7c3e5a3a2d83?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'face mist'
   },
   {
@@ -50,13 +50,13 @@ const newlyAddedProducts = [
   {
     name: 'Exfoliating Body Scrub',
     price: '$42',
-    image: 'https://images.unsplash.com/photo-1563806280034-7c3e5a3a2d83?q=80&w=400&h=400&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1628398849787-a8b273b4b74a?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'body scrub'
   },
   {
     name: 'Cuticle Care Oil',
     price: '$18',
-    image: 'https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=400&h=400&auto=format&fit=crop',
+    image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'cuticle oil'
   }
 ];
@@ -102,7 +102,7 @@ export default function Home() {
         <section className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="w-full aspect-[3/1] overflow-hidden rounded-lg shadow-lg">
             <Image
-              src="https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1200&h=400&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1200&h=400&auto=format&fit=crop"
               alt="Special Offer Banner"
               width={1200}
               height={400}
@@ -140,7 +140,7 @@ export default function Home() {
         <section className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="w-full aspect-[3/1] overflow-hidden rounded-lg shadow-lg">
             <Image
-              src="https://images.unsplash.com/photo-1557833042-7c3a64a34a2e?q=80&w=1200&h=400&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&h=400&auto=format&fit=crop"
               alt="Special Offer Banner"
               width={1200}
               height={400}
