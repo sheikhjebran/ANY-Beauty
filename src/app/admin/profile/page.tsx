@@ -113,8 +113,8 @@ function ProfileContent() {
     }
     
     return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-1 flex flex-col items-center justify-center text-center p-6">
+      <div className="flex flex-col items-center gap-8 w-full max-w-2xl mx-auto">
+        <Card className="w-full flex flex-col items-center justify-center text-center p-6 shadow-lg">
             <Avatar className="w-32 h-32 mb-4 border-4 border-primary">
                 <AvatarImage src="https://placehold.co/128x128.png" alt="Admin" data-ai-hint="user avatar"/>
                 <AvatarFallback>AD</AvatarFallback>
@@ -123,7 +123,7 @@ function ProfileContent() {
             <p className="text-muted-foreground">Administrator</p>
         </Card>
 
-        <Card className="lg:col-span-2">
+        <Card className="w-full shadow-lg">
             <CardHeader>
                 <CardTitle>Reset Password</CardTitle>
                 <CardDescription>
