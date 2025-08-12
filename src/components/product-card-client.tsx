@@ -119,20 +119,30 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
           {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}
         </p>
       </CardHeader>
-      <CardFooter className="flex-col items-start gap-3 w-full">
+      <CardFooter className="flex-col items-start gap-4 w-full">
         <div className="w-full space-y-2">
             <Label htmlFor={`quantity-${product.id}`} className="text-xs font-medium text-muted-foreground">QUANTITY</Label>
-             <div className="flex items-center justify-between w-full rounded-md border border-input">
-                <Button variant="ghost" size="icon" className="h-full rounded-r-none" onClick={() => adjustQuantity(-1)} disabled={isOutOfStock || quantity <= 1}>
+             <div className="flex items-center justify-between w-full rounded-full bg-secondary p-1">
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="rounded-full bg-background/50 hover:bg-background h-8 w-8 shadow-sm" 
+                    onClick={() => adjustQuantity(-1)} 
+                    disabled={isOutOfStock || quantity <= 1}>
                     <Minus className="h-4 w-4" />
                 </Button>
-                <span id={`quantity-${product.id}`} className="font-bold text-lg">{quantity}</span>
-                <Button variant="ghost" size="icon" className="h-full rounded-l-none" onClick={() => adjustQuantity(1)} disabled={isOutOfStock || quantity >= product.quantity}>
+                <span id={`quantity-${product.id}`} className="font-bold text-lg text-primary px-4">{quantity}</span>
+                <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="rounded-full bg-background/50 hover:bg-background h-8 w-8 shadow-sm" 
+                    onClick={() => adjustQuantity(1)} 
+                    disabled={isOutOfStock || quantity >= product.quantity}>
                     <Plus className="h-4 w-4" />
                 </Button>
             </div>
         </div>
-        <Button onClick={handleAddToCart} disabled={isOutOfStock} className="w-full">
+        <Button onClick={handleAddToCart} disabled={isOutOfStock} className="w-full rounded-full" size="lg">
             <ShoppingCart className="mr-2 h-4 w-4" />
             Add to Cart
         </Button>
