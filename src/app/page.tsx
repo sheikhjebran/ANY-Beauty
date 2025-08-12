@@ -26,12 +26,12 @@ interface Product {
 }
 
 const categories = [
-  { name: 'SkinCare', href: '/categories/skincare', image: 'https://placehold.co/300x300.png', hint: 'skincare products' },
-  { name: 'Lips', href: '/categories/lips', image: 'https://placehold.co/300x300.png', hint: 'lipstick makeup' },
-  { name: 'Bath & Body', href: '/categories/bath-body', image: 'https://placehold.co/300x300.png', hint: 'bath bombs' },
-  { name: 'Fragrances', href: '/categories/fragrances', image: 'https://placehold.co/300x300.png', hint: 'perfume bottle' },
-  { name: 'Eyes', href: '/categories/eyes', image: 'https://placehold.co/300x300.png', hint: 'eyeshadow palette' },
-  { name: 'Nails', href: '/categories/nails', image: 'https://placehold.co/300x300.png', hint: 'nail polish' },
+  { name: 'SkinCare', href: '/categories/skincare', image: 'https://images.unsplash.com/photo-1556228721-e26920387693?q=80&w=300&h=300&auto=format&fit=crop', hint: 'skincare products' },
+  { name: 'Lips', href: '/categories/lips', image: 'https://images.unsplash.com/photo-1628398849787-a8b273b4b74a?q=80&w=300&h=300&auto=format&fit=crop', hint: 'lipstick makeup' },
+  { name: 'Bath & Body', href: '/categories/bath-body', image: 'https://images.unsplash.com/photo-1542803597-937e83955376?q=80&w=300&h=300&auto=format&fit=crop', hint: 'bath bombs' },
+  { name: 'Fragrances', href: '/categories/fragrances', image: 'https://images.unsplash.com/photo-1583241510427-33a54e9a4185?q=80&w=300&h=300&auto=format&fit=crop', hint: 'perfume bottle' },
+  { name: 'Eyes', href: '/categories/eyes', image: 'https://images.unsplash.com/photo-1604335433189-fcce22e18585?q=80&w=300&h=300&auto=format&fit=crop', hint: 'eyeshadow palette' },
+  { name: 'Nails', href: '/categories/nails', image: 'https://images.unsplash.com/photo-1519794348259-c2c6a0684f22?q=80&w=300&h=300&auto=format&fit=crop', hint: 'nail polish' },
 ];
 
 function ProductSection({ title, fetcher, limit: displayLimit }: { title: string, fetcher: () => Promise<Product[]>, limit?: number }) {
@@ -131,7 +131,7 @@ export default function Home() {
               width={1200}
               height={400}
               className="w-full h-full object-cover"
-              data-ai-hint="beauty promotion"
+              data-ai-hint="beauty model"
             />
           </div>
         </section>

@@ -116,7 +116,7 @@ function ProfileContent() {
       <div className="flex flex-col items-center gap-8 w-full max-w-2xl mx-auto">
         <Card className="w-full flex flex-col items-center justify-center text-center p-6 shadow-lg">
             <Avatar className="w-32 h-32 mb-4 border-4 border-primary">
-                <AvatarImage src="https://placehold.co/128x128.png" alt="Admin" data-ai-hint="user avatar"/>
+                <AvatarImage src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=128&h=128&fit=crop" alt="Admin" data-ai-hint="user avatar"/>
                 <AvatarFallback>AD</AvatarFallback>
             </Avatar>
             <h2 className="text-2xl font-bold font-headline">Admin User</h2>
