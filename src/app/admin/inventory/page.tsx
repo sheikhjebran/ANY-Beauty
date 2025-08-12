@@ -95,7 +95,7 @@ function InventoryContent() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-[80px]">Image</TableHead>
+                                <TableHead>Image</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Category</TableHead>
                                 <TableHead className="text-center">Best Seller</TableHead>
