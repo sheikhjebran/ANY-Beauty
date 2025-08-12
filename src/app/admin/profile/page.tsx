@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
 import {
   LogOut,
   LayoutDashboard,
@@ -33,7 +32,7 @@ const menuItems = [
   { href: '/admin/profile', icon: User, label: 'Profile' },
 ];
 
-export default function AdminDashboardPage() {
+export default function ProfilePage() {
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
@@ -53,7 +52,7 @@ export default function AdminDashboardPage() {
   };
 
   if (!isClient) {
-    return null; // or a loading spinner
+    return null;
   }
 
   return (
@@ -96,17 +95,10 @@ export default function AdminDashboardPage() {
             <SidebarTrigger className="md:hidden">
               <PanelLeft />
             </SidebarTrigger>
-            <h1 className="text-xl font-semibold text-primary">Dashboard</h1>
+            <h1 className="text-xl font-semibold text-primary">Profile</h1>
           </header>
           <main className="flex-grow p-6">
-            <div className="text-left space-y-4">
-              <h2 className="text-3xl font-headline font-bold">
-                Welcome, Admin!
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                You can manage your store from here.
-              </p>
-            </div>
+            {/* Content for Profile page goes here */}
           </main>
         </SidebarInset>
       </div>
