@@ -26,12 +26,12 @@ interface Product {
 }
 
 const categories = [
-  { name: 'SkinCare', href: '/categories/skincare', image: 'https://images.unsplash.com/photo-1556228721-e26920387693?q=80&w=300&h=300&auto=format&fit=crop', hint: 'skincare products' },
-  { name: 'Lips', href: '/categories/lips', image: 'https://images.unsplash.com/photo-1628398849787-a8b273b4b74a?q=80&w=300&h=300&auto=format&fit=crop', hint: 'lipstick makeup' },
-  { name: 'Bath & Body', href: '/categories/bath-body', image: 'https://images.unsplash.com/photo-1542803597-937e83955376?q=80&w=300&h=300&auto=format&fit=crop', hint: 'bath bombs' },
-  { name: 'Fragrances', href: '/categories/fragrances', image: 'https://images.unsplash.com/photo-1583241510427-33a54e9a4185?q=80&w=300&h=300&auto=format&fit=crop', hint: 'perfume bottle' },
-  { name: 'Eyes', href: '/categories/eyes', image: 'https://images.unsplash.com/photo-1604335433189-fcce22e18585?q=80&w=300&h=300&auto=format&fit=crop', hint: 'eyeshadow palette' },
-  { name: 'Nails', href: '/categories/nails', image: 'https://images.unsplash.com/photo-1519794348259-c2c6a0684f22?q=80&w=300&h=300&auto=format&fit=crop', hint: 'nail polish' },
+  { name: 'SkinCare', href: '/categories/skincare', image: '/assets/category/skincare.jpg', hint: 'skincare products' },
+  { name: 'Lips', href: '/categories/lips', image: '/assets/category/lips.jpg', hint: 'lipstick makeup' },
+  { name: 'Bath & Body', href: '/categories/bath-body', image: '/assets/category/bath_body.jpg', hint: 'bath bombs' },
+  { name: 'Fragrances', href: '/categories/fragrances', image: '/assets/category/fragrance.jpg', hint: 'perfume bottle' },
+  { name: 'Eyes', href: '/categories/eyes', image: '/assets/category/eyes.jpg', hint: 'eyeshadow palette' },
+  { name: 'Nails', href: '/categories/nails', image: '/assets/category/nails.jpg', hint: 'nail polish' },
 ];
 
 function ProductSection({ title, fetcher, limit: displayLimit }: { title: string, fetcher: () => Promise<Product[]>, limit?: number }) {
@@ -126,7 +126,7 @@ export default function Home() {
         <section className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="w-full aspect-[3/1] overflow-hidden rounded-lg shadow-lg">
             <Image
-              src="https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1200&h=400&auto=format&fit=crop"
+              src="/assets/banner/banner1.jpg"
               alt="Special Offer Banner"
               width={1200}
               height={400}
@@ -141,7 +141,7 @@ export default function Home() {
         <section className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="w-full aspect-[3/1] overflow-hidden rounded-lg shadow-lg">
             <Image
-              src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&h=400&auto=format=fit=crop"
+              src="/assets/banner/banner2.jpg"
               alt="Special Offer Banner"
               width={1200}
               height={400}

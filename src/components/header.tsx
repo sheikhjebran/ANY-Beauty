@@ -203,7 +203,7 @@ export function Header() {
         <div className="flex justify-center w-1/3">
           <Link href="/" className="flex items-center gap-2 text-2xl md:text-3xl font-headline font-bold text-primary">
             <Image 
-              src="/logo.png"
+              src="/assets/logo/logo.png"
               alt="AYN Beauty Logo"
               width={60}
               height={60}
