@@ -171,7 +171,7 @@ export default function CartPage() {
                         <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</span>
                     </div>
                     <Button className="w-full" size="lg" onClick={handleCheckout}>
-                        Proceed to Checkout
+                        Place order on Whatsapp
                     </Button>
                 </div>
               </div>
