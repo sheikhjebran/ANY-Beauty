@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LogOut,
@@ -12,6 +12,9 @@ import {
   PanelLeft,
   ArrowLeft,
   Loader2,
+  UploadCloud,
+  X,
+  GripVertical
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -26,9 +29,12 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getAuth, signOut } from 'firebase/auth';
-import { app, db } from '@/lib/firebase';
+import { app, db, storage } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { v4 as uuidv4 } from 'uuid';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -61,7 +67,7 @@ const productSchema = z.object({
     (a) => parseInt(z.string().parse(a), 10),
     z.number().int().nonnegative('Quantity must be a non-negative integer')
   ),
-  image: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  images: z.array(z.instanceof(File)).min(1, 'At least one image is required'),
 });
 
 
@@ -69,7 +75,8 @@ function AddProductForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { register, handleSubmit, control, formState: { errors } } = useForm({
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const { register, handleSubmit, control, formState: { errors }, watch, setValue } = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
     defaultValues: {
         name: '',
@@ -77,17 +84,49 @@ function AddProductForm() {
         isBestSeller: false,
         price: 0,
         quantity: 0,
-        image: '',
+        images: [],
     }
   });
 
-  const onSubmit = async (data: any) => {
+  const images = watch('images');
+
+  useEffect(() => {
+    if (images && images.length > 0) {
+      const previews = Array.from(images).map(file => URL.createObjectURL(file));
+      setImagePreviews(previews);
+      return () => previews.forEach(url => URL.revokeObjectURL(url));
+    } else {
+      setImagePreviews([]);
+    }
+  }, [images]);
+
+  const removeImage = (indexToRemove: number) => {
+    const updatedImages = images.filter((_, index) => index !== indexToRemove);
+    setValue('images', updatedImages, { shouldValidate: true });
+  }
+
+  const onSubmit = async (data: z.infer<typeof productSchema>) => {
     setIsSubmitting(true);
     try {
+      const imageUrls: string[] = [];
+      for (const imageFile of data.images) {
+        const storageRef = ref(storage, `products/${uuidv4()}-${imageFile.name}`);
+        await uploadBytes(storageRef, imageFile);
+        const downloadURL = await getDownloadURL(storageRef);
+        imageUrls.push(downloadURL);
+      }
+
+      if (imageUrls.length === 0) {
+        imageUrls.push(`https://placehold.co/64x64.png?text=${data.name.charAt(0)}`);
+      }
+
       const newProduct = {
-        ...data,
+        name: data.name,
+        category: data.category,
+        isBestSeller: data.isBestSeller,
         price: data.price * 100, // Store price in cents
-        image: data.image || `https://placehold.co/64x64.png?text=${data.name.charAt(0)}`,
+        quantity: data.quantity,
+        images: imageUrls,
         hint: `${data.name.toLowerCase()} product`,
         createdAt: new Date(),
       };
@@ -160,11 +199,54 @@ function AddProductForm() {
                 </div>
            </div>
 
-           <div className="grid gap-3">
-                <Label htmlFor="image">Image URL</Label>
-                <Input id="image" {...register('image')} placeholder="https://your-image-url.com/image.png" disabled={isSubmitting} />
-                {errors.image && <p className="text-sm text-destructive">{errors.image.message as string}</p>}
-           </div>
+          <div className="grid gap-3">
+            <Label htmlFor="images">Product Images</Label>
+            <div className="flex items-center justify-center w-full">
+              <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted border-border">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                  <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+                </div>
+                 <input 
+                  id="dropzone-file" 
+                  type="file" 
+                  multiple 
+                  className="hidden"
+                  accept="image/*"
+                  disabled={isSubmitting}
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const newFiles = Array.from(e.target.files);
+                      const currentFiles = watch('images') || [];
+                      setValue('images', [...currentFiles, ...newFiles], { shouldValidate: true });
+                    }
+                  }}
+                />
+              </label>
+            </div>
+             {errors.images && <p className="text-sm text-destructive">{errors.images.message as string}</p>}
+
+            {imagePreviews.length > 0 && (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4 mt-4">
+                  {imagePreviews.map((src, index) => (
+                    <div key={index} className="relative group aspect-square">
+                      <Image src={src} alt={`Preview ${index}`} layout="fill" className="rounded-md object-cover"/>
+                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <Button variant="destructive" size="icon" type="button" onClick={() => removeImage(index)} disabled={isSubmitting}>
+                              <X className="h-4 w-4" />
+                          </Button>
+                      </div>
+                      {index === 0 && (
+                        <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded">
+                          Default
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+            )}
+          </div>
 
           <div className="flex items-center gap-4">
             <Label htmlFor="isBestSeller" className="flex-shrink-0">Best Seller</Label>

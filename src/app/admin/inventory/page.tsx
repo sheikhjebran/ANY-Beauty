@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
@@ -112,7 +113,7 @@ function InventoryContent() {
                                             alt={product.name}
                                             className="aspect-square rounded-md object-cover"
                                             height="64"
-                                            src={product.image}
+                                            src={product.images?.[0] || 'https://placehold.co/64x64.png'}
                                             width="64"
                                             data-ai-hint={product.hint}
                                         />
