@@ -55,7 +55,15 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
             });
             return;
         }
-        cart.push({ ...product, quantity });
+        cart.push({ 
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            images: product.images,
+            hint: product.hint,
+            quantity: quantity, 
+            stock: product.quantity, // Add stock property
+        });
       }
 
       localStorage.setItem('cart', JSON.stringify(cart));
