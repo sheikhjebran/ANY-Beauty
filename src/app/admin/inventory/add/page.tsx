@@ -67,7 +67,7 @@ const productSchema = z.object({
     (a) => parseInt(z.string().parse(a), 10),
     z.number().int().nonnegative('Quantity must be a non-negative integer')
   ),
-  images: z.any().refine((files) => files?.length >= 1, 'At least one image is required.'),
+  images: z.any().optional(),
 });
 
 
@@ -110,15 +110,17 @@ function AddProductForm() {
     setIsSubmitting(true);
     try {
       const imageUrls: string[] = [];
-      for (const imageFile of data.images) {
-        const storageRef = ref(storage, `products/${uuidv4()}-${(imageFile as File).name}`);
-        await uploadBytes(storageRef, imageFile as Blob);
-        const downloadURL = await getDownloadURL(storageRef);
-        imageUrls.push(downloadURL);
+      if (data.images && data.images.length > 0) {
+        for (const imageFile of data.images) {
+          const storageRef = ref(storage, `products/${uuidv4()}-${(imageFile as File).name}`);
+          await uploadBytes(storageRef, imageFile as Blob);
+          const downloadURL = await getDownloadURL(storageRef);
+          imageUrls.push(downloadURL);
+        }
       }
 
       if (imageUrls.length === 0) {
-        imageUrls.push(`https://placehold.co/64x64.png?text=${data.name.charAt(0)}`);
+        imageUrls.push(`https://placehold.co/400x400.png?text=${encodeURIComponent(data.name)}`);
       }
 
       const newProduct = {
@@ -155,7 +157,7 @@ function AddProductForm() {
   const fileRef = register("images");
 
   return (
-    <div className="mx-auto">
+    <div className="mx-auto w-full">
       <Card>
         <CardHeader>
           <CardTitle>Add New Product</CardTitle>
@@ -233,7 +235,7 @@ function AddProductForm() {
               {errors.images && <p className="text-sm text-destructive">{errors.images.message as string}</p>}
 
               {imagePreviews.length > 0 && (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4">
                     {imagePreviews.map((src, index) => (
                       <div key={index} className="relative group aspect-square">
                         <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover"/>
@@ -372,7 +374,3 @@ export default function AddProductPage() {
     </SidebarProvider>
   );
 }
-
-    
-
-    
