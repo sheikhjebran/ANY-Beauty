@@ -11,6 +11,8 @@ import {
   User,
   PanelLeft,
   PlusCircle,
+  FilePenLine,
+  Trash2,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -25,6 +27,7 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import Image from 'next/image';
 import { getAuth, signOut } from 'firebase/auth';
 import { app } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
@@ -36,8 +39,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Switch } from '@/components/ui/switch';
 
 const menuItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -48,34 +51,49 @@ const menuItems = [
 
 const products = [
   {
+    image: 'https://placehold.co/64x64.png',
+    hint: 'serum bottle',
     name: 'Radiant Glow Serum',
-    quantity: 25,
+    category: 'Skincare',
+    isBestSeller: true,
     price: 5999,
-    status: 'In Stock',
+    quantity: 25,
   },
   {
+    image: 'https://placehold.co/64x64.png',
+    hint: 'lipstick product',
     name: 'Velvet Touch Lipstick',
-    quantity: 0,
+    category: 'Lips',
+    isBestSeller: false,
     price: 2499,
-    status: 'Out of Stock',
+    quantity: 0,
   },
   {
+    image: 'https://placehold.co/64x64.png',
+    hint: 'foundation cosmetics',
     name: 'Silk Finish Foundation',
-    quantity: 5,
+    category: 'Face',
+    isBestSeller: true,
     price: 4500,
-    status: 'Low Stock',
+    quantity: 5,
   },
   {
+    image: 'https://placehold.co/64x64.png',
+    hint: 'face cream',
     name: 'Night Repair Cream',
-    quantity: 50,
+    category: 'Skincare',
+    isBestSeller: false,
     price: 6800,
-    status: 'In Stock',
+    quantity: 50,
   },
    {
+    image: 'https://placehold.co/64x64.png',
+    hint: 'face mist',
     name: 'Hydrating Face Mist',
-    quantity: 100,
+    category: 'Skincare',
+    isBestSeller: true,
     price: 1999,
-    status: 'In Stock',
+    quantity: 100,
   },
 ];
 
@@ -96,31 +114,52 @@ function InventoryContent() {
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Product Name</TableHead>
-                            <TableHead className="text-center">Status</TableHead>
+                            <TableHead className="w-[80px]">Image</TableHead>
+                            <TableHead>Name</TableHead>
+                            <TableHead>Category</TableHead>
+                            <TableHead className="text-center">Best Seller</TableHead>
                             <TableHead className="text-right">Price</TableHead>
                             <TableHead className="text-right">Quantity</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {products.map((product) => (
                             <TableRow key={product.name}>
+                                <TableCell>
+                                    <Image
+                                        alt={product.name}
+                                        className="aspect-square rounded-md object-cover"
+                                        height="64"
+                                        src={product.image}
+                                        width="64"
+                                        data-ai-hint={product.hint}
+                                    />
+                                </TableCell>
                                 <TableCell className="font-medium">{product.name}</TableCell>
+                                <TableCell>{product.category}</TableCell>
                                 <TableCell className="text-center">
-                                    <Badge 
-                                        variant={
-                                            product.status === 'In Stock' ? 'default' : 
-                                            product.status === 'Out of Stock' ? 'destructive' : 'secondary'
-                                        }
-                                        className="capitalize"
-                                    >
-                                        {product.status}
-                                    </Badge>
+                                    <Switch
+                                        checked={product.isBestSeller}
+                                        aria-label="Toggle best seller status"
+                                    />
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price)}
+                                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}
                                 </TableCell>
                                 <TableCell className="text-right">{product.quantity}</TableCell>
+                                <TableCell className="text-right">
+                                    <div className="flex justify-end gap-2">
+                                        <Button variant="outline" size="icon">
+                                            <FilePenLine className="h-4 w-4" />
+                                            <span className="sr-only">Edit</span>
+                                        </Button>
+                                        <Button variant="destructive" size="icon">
+                                            <Trash2 className="h-4 w-4" />
+                                            <span className="sr-only">Delete</span>
+                                        </Button>
+                                    </div>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
