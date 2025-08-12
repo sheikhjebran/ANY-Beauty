@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LogOut,
   LayoutDashboard,
@@ -12,6 +12,7 @@ import {
   PlusCircle,
   FilePenLine,
   Trash2,
+  Loader2,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -28,7 +29,8 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { getAuth, signOut } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -48,55 +50,28 @@ const menuItems = [
   { href: '/admin/profile', icon: User, label: 'Profile' },
 ];
 
-const initialProducts = [
-  {
-    image: 'https://placehold.co/64x64.png',
-    hint: 'serum bottle',
-    name: 'Radiant Glow Serum',
-    category: 'Skincare',
-    isBestSeller: true,
-    price: 5999,
-    quantity: 25,
-  },
-  {
-    image: 'https://placehold.co/64x64.png',
-    hint: 'lipstick product',
-    name: 'Velvet Touch Lipstick',
-    category: 'Lips',
-    isBestSeller: false,
-    price: 2499,
-    quantity: 0,
-  },
-  {
-    image: 'https://placehold.co/64x64.png',
-    hint: 'foundation cosmetics',
-    name: 'Silk Finish Foundation',
-    category: 'Face',
-    isBestSeller: true,
-    price: 4500,
-    quantity: 5,
-  },
-  {
-    image: 'https://placehold.co/64x64.png',
-    hint: 'face cream',
-    name: 'Night Repair Cream',
-    category: 'Skincare',
-    isBestSeller: false,
-    price: 6800,
-    quantity: 50,
-  },
-   {
-    image: 'https://placehold.co/64x64.png',
-    hint: 'face mist',
-    name: 'Hydrating Face Mist',
-    category: 'Skincare',
-    isBestSeller: true,
-    price: 1999,
-    quantity: 100,
-  },
-];
+function InventoryContent() {
+    const [products, setProducts] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-function InventoryContent({products, setProducts}: any) {
+    const fetchProducts = useCallback(async () => {
+        setIsLoading(true);
+        try {
+            const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
+            const querySnapshot = await getDocs(q);
+            const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            setProducts(productsData);
+        } catch (error) {
+            console.error("Error fetching products: ", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
+
     return (
         <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -112,59 +87,65 @@ function InventoryContent({products, setProducts}: any) {
                 </Button>
             </CardHeader>
             <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead className="w-[80px]">Image</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead className="text-center">Best Seller</TableHead>
-                            <TableHead className="text-right">Price</TableHead>
-                            <TableHead className="text-right">Quantity</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {products.map((product: any) => (
-                            <TableRow key={product.name}>
-                                <TableCell>
-                                    <Image
-                                        alt={product.name}
-                                        className="aspect-square rounded-md object-cover"
-                                        height="64"
-                                        src={product.image}
-                                        width="64"
-                                        data-ai-hint={product.hint}
-                                    />
-                                </TableCell>
-                                <TableCell className="font-medium">{product.name}</TableCell>
-                                <TableCell>{product.category}</TableCell>
-                                <TableCell className="text-center">
-                                    <Switch
-                                        checked={product.isBestSeller}
-                                        aria-label="Toggle best seller status"
-                                    />
-                                </TableCell>
-                                <TableCell className="text-right">
-                                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(product.price / 100)}
-                                </TableCell>
-                                <TableCell className="text-right">{product.quantity}</TableCell>
-                                <TableCell className="text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Button variant="outline" size="icon">
-                                            <FilePenLine className="h-4 w-4" />
-                                            <span className="sr-only">Edit</span>
-                                        </Button>
-                                        <Button variant="destructive" size="icon">
-                                            <Trash2 className="h-4 w-4" />
-                                            <span className="sr-only">Delete</span>
-                                        </Button>
-                                    </div>
-                                </TableCell>
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    </div>
+                ) : (
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="w-[80px]">Image</TableHead>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Category</TableHead>
+                                <TableHead className="text-center">Best Seller</TableHead>
+                                <TableHead className="text-right">Price</TableHead>
+                                <TableHead className="text-right">Quantity</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
+                        </TableHeader>
+                        <TableBody>
+                            {products.map((product: any) => (
+                                <TableRow key={product.id}>
+                                    <TableCell>
+                                        <Image
+                                            alt={product.name}
+                                            className="aspect-square rounded-md object-cover"
+                                            height="64"
+                                            src={product.image}
+                                            width="64"
+                                            data-ai-hint={product.hint}
+                                        />
+                                    </TableCell>
+                                    <TableCell className="font-medium">{product.name}</TableCell>
+                                    <TableCell>{product.category}</TableCell>
+                                    <TableCell className="text-center">
+                                        <Switch
+                                            checked={product.isBestSeller}
+                                            aria-label="Toggle best seller status"
+                                        />
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}
+                                    </TableCell>
+                                    <TableCell className="text-right">{product.quantity}</TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="outline" size="icon">
+                                                <FilePenLine className="h-4 w-4" />
+                                                <span className="sr-only">Edit</span>
+                                            </Button>
+                                            <Button variant="destructive" size="icon">
+                                                <Trash2 className="h-4 w-4" />
+                                                <span className="sr-only">Delete</span>
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                )}
             </CardContent>
         </Card>
     );
@@ -173,9 +154,7 @@ function InventoryContent({products, setProducts}: any) {
 export default function InventoryPage() {
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [isClient, setIsClient] = useState(false);
-  const [products, setProducts] = useState(initialProducts);
   const auth = getAuth(app);
 
   useEffect(() => {
@@ -185,15 +164,7 @@ export default function InventoryPage() {
     if (!isAuthenticated) {
       router.replace('/admin');
     }
-    
-    const newProductParam = searchParams.get('newProduct');
-    if (newProductParam) {
-      const newProduct = JSON.parse(newProductParam);
-      setProducts(prevProducts => [newProduct, ...prevProducts]);
-      // Remove the query parameter from the URL
-      router.replace(pathname, undefined);
-    }
-  }, [router, searchParams, pathname]);
+  }, [router]);
 
   const handleLogout = () => {
     signOut(auth).then(() => {
@@ -251,7 +222,7 @@ export default function InventoryPage() {
             <h1 className="text-xl font-semibold text-primary">Inventory</h1>
           </header>
           <main className="flex-grow p-6">
-            <InventoryContent products={products} setProducts={setProducts} />
+            <InventoryContent />
           </main>
         </SidebarInset>
       </div>

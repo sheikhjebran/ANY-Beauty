@@ -11,6 +11,7 @@ import {
   User,
   PanelLeft,
   ArrowLeft,
+  Loader2,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -26,7 +27,8 @@ import {
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 import { getAuth, signOut } from 'firebase/auth';
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
+import { collection, addDoc } from 'firebase/firestore';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -66,6 +68,7 @@ const productSchema = z.object({
 function AddProductForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, control, formState: { errors } } = useForm({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -78,20 +81,35 @@ function AddProductForm() {
     }
   });
 
-  const onSubmit = (data: any) => {
-    const newProduct = {
-      ...data,
-      price: data.price * 100, // Store price in cents
-      image: data.image || 'https://placehold.co/64x64.png',
-      hint: `${data.name.toLowerCase()} product`,
-    };
+  const onSubmit = async (data: any) => {
+    setIsSubmitting(true);
+    try {
+      const newProduct = {
+        ...data,
+        price: data.price * 100, // Store price in cents
+        image: data.image || `https://placehold.co/64x64.png?text=${data.name.charAt(0)}`,
+        hint: `${data.name.toLowerCase()} product`,
+        createdAt: new Date(),
+      };
 
-    toast({
-      title: 'Product Added!',
-      description: `${data.name} has been added to your inventory.`,
-    });
-    
-    router.push(`/admin/inventory?newProduct=${encodeURIComponent(JSON.stringify(newProduct))}`);
+      await addDoc(collection(db, "products"), newProduct);
+
+      toast({
+        title: 'Product Added!',
+        description: `${data.name} has been added to your inventory.`,
+      });
+      
+      router.push('/admin/inventory');
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'There was a problem adding the product. Please try again.',
+      });
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -104,7 +122,7 @@ function AddProductForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6">
           <div className="grid gap-3">
             <Label htmlFor="name">Product Name</Label>
-            <Input id="name" {...register('name')} placeholder="e.g. Radiant Glow Serum" />
+            <Input id="name" {...register('name')} placeholder="e.g. Radiant Glow Serum" disabled={isSubmitting} />
             {errors.name && <p className="text-sm text-destructive">{errors.name.message as string}</p>}
           </div>
 
@@ -114,7 +132,7 @@ function AddProductForm() {
                 name="category"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                     <SelectTrigger id="category">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
@@ -132,19 +150,19 @@ function AddProductForm() {
            <div className="grid grid-cols-2 gap-6">
                 <div className="grid gap-3">
                     <Label htmlFor="price">Price (₹)</Label>
-                    <Input id="price" type="number" {...register('price')} placeholder="e.g. 5999" />
+                    <Input id="price" type="number" {...register('price')} placeholder="e.g. 59.99" step="0.01" disabled={isSubmitting} />
                     {errors.price && <p className="text-sm text-destructive">{errors.price.message as string}</p>}
                 </div>
                 <div className="grid gap-3">
                     <Label htmlFor="quantity">Quantity</Label>
-                    <Input id="quantity" type="number" {...register('quantity')} placeholder="e.g. 100" />
+                    <Input id="quantity" type="number" {...register('quantity')} placeholder="e.g. 100" disabled={isSubmitting} />
                     {errors.quantity && <p className="text-sm text-destructive">{errors.quantity.message as string}</p>}
                 </div>
            </div>
 
            <div className="grid gap-3">
                 <Label htmlFor="image">Image URL</Label>
-                <Input id="image" {...register('image')} placeholder="https://your-image-url.com/image.png" />
+                <Input id="image" {...register('image')} placeholder="https://your-image-url.com/image.png" disabled={isSubmitting} />
                 {errors.image && <p className="text-sm text-destructive">{errors.image.message as string}</p>}
            </div>
 
@@ -158,16 +176,20 @@ function AddProductForm() {
                         id="isBestSeller"
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        disabled={isSubmitting}
                     />
                 )}
             />
           </div>
 
           <div className="flex justify-end gap-2">
-            <Button variant="outline" asChild>
+            <Button variant="outline" asChild disabled={isSubmitting}>
                 <Link href="/admin/inventory">Cancel</Link>
             </Button>
-            <Button type="submit">Add Product</Button>
+            <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Add Product
+            </Button>
           </div>
         </form>
       </CardContent>
