@@ -82,6 +82,7 @@ function EditProductForm() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
     const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
+    const [imagesToRemove, setImagesToRemove] = useState<string[]>([]);
 
     const { register, handleSubmit, control, formState: { errors }, watch, setValue, reset } = useForm<z.infer<typeof productSchema>>({
         resolver: zodResolver(productSchema),
@@ -91,7 +92,7 @@ function EditProductForm() {
             isBestSeller: false,
             price: 0,
             quantity: 0,
-            images: undefined,
+            images: [],
         }
     });
 
@@ -110,10 +111,10 @@ function EditProductForm() {
                     reset({
                         ...productData,
                         price: (productData.price / 100).toFixed(2), // Convert from cents
+                        images: [], // Don't load existing images into the file input
                     });
                     const imageUrls = productData.images || [];
                     setExistingImageUrls(imageUrls);
-                    setImagePreviews(imageUrls);
                 } else {
                     toast({
                         variant: 'destructive',
@@ -138,55 +139,54 @@ function EditProductForm() {
     }, [productId, reset, router, toast]);
 
     useEffect(() => {
-        if (newImageFiles && newImageFiles.length > 0) {
-            const newPreviews = Array.from(newImageFiles)
-                .filter(file => file instanceof Blob)
-                .map((file: any) => URL.createObjectURL(file as Blob));
-
-            setImagePreviews([...existingImageUrls, ...newPreviews]);
-            
-            return () => newPreviews.forEach(url => URL.revokeObjectURL(url));
-        } else {
-            setImagePreviews(existingImageUrls);
-        }
+        const newPreviews = newImageFiles ? Array.from(newImageFiles).filter((file: any) => file instanceof File).map((file: any) => URL.createObjectURL(file)) : [];
+        setImagePreviews([...existingImageUrls, ...newPreviews]);
+        
+        return () => {
+            newPreviews.forEach(url => URL.revokeObjectURL(url));
+        };
     }, [newImageFiles, existingImageUrls]);
 
 
-    const removeImage = async (indexToRemove: number) => {
+    const removeImage = (indexToRemove: number) => {
         const imageUrlToRemove = imagePreviews[indexToRemove];
-
-        // If it's an existing image, it needs to be handled differently
-        if (existingImageUrls.includes(imageUrlToRemove)) {
-            // Optimistically update UI
-            const updatedExistingUrls = existingImageUrls.filter(url => url !== imageUrlToRemove);
-            setExistingImageUrls(updatedExistingUrls);
-            setImagePreviews(imagePreviews.filter((_, i) => i !== indexToRemove));
-
-             if (imageUrlToRemove.includes('firebasestorage.googleapis.com')) {
-                try {
-                    const imageRef = ref(storage, imageUrlToRemove);
-                    await deleteObject(imageRef);
-                    toast({ title: 'Image removed from storage.' });
-                } catch (error) {
-                    console.error("Error deleting image from storage:", error);
-                    toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete image from storage.' });
-                    // Revert UI change if deletion fails
-                    setExistingImageUrls(prev => [...prev, imageUrlToRemove]);
-                    setImagePreviews(prev => [...prev, imageUrlToRemove]);
-                }
+        
+        // Check if it's an existing image url
+        const existingUrlIndex = existingImageUrls.indexOf(imageUrlToRemove);
+        if (existingUrlIndex > -1) {
+            setExistingImageUrls(prev => prev.filter(url => url !== imageUrlToRemove));
+            // If it's a firebase storage url, add to removal queue
+            if (imageUrlToRemove.includes('firebasestorage.googleapis.com')) {
+                setImagesToRemove(prev => [...prev, imageUrlToRemove]);
             }
-
-        } else { // It's a new file preview
-            const currentNewFiles = watch('images') || [];
-            // This is tricky because we only have the object URL, not the file itself
-            // We need to find the corresponding file in the `newImageFiles` FileList
-            const updatedNewFiles = Array.from(currentNewFiles).filter((_, index) => {
-                const previewUrl = URL.createObjectURL(_ as Blob);
-                const match = previewUrl === imageUrlToRemove;
-                URL.revokeObjectURL(previewUrl); // Clean up the created URL
+        } else {
+             // It's a new file preview, remove it from the form's file list
+            const updatedFiles = Array.from(newImageFiles || []).filter((_, i) => {
+                // This is a bit of a hack, but we find the corresponding blob url to remove
+                const url = URL.createObjectURL(_ as Blob);
+                const match = url === imageUrlToRemove;
+                URL.revokeObjectURL(url); // clean up immediately
                 return !match;
             });
-            setValue('images', updatedNewFiles, { shouldValidate: true });
+
+             // We need to find the correct file to remove from the FileList
+             const dataTransfer = new DataTransfer();
+             const currentFiles = Array.from(watch('images') || []);
+             const urlMap = new Map(currentFiles.map(file => [URL.createObjectURL(file), file]));
+             
+             let fileToRemove: File | undefined;
+             urlMap.forEach((file, url) => {
+                 if (url === imageUrlToRemove) {
+                    fileToRemove = file;
+                 }
+                 URL.revokeObjectURL(url);
+             });
+ 
+             if(fileToRemove) {
+                const newFiles = currentFiles.filter(f => f !== fileToRemove);
+                newFiles.forEach(file => dataTransfer.items.add(file));
+                setValue('images', dataTransfer.files, { shouldValidate: true });
+             }
         }
     }
 
@@ -194,6 +194,16 @@ function EditProductForm() {
     const onSubmit = async (data: z.infer<typeof productSchema>) => {
         setIsSubmitting(true);
         try {
+            // Delete images marked for removal
+            for (const imageUrl of imagesToRemove) {
+                try {
+                    const imageRef = ref(storage, imageUrl);
+                    await deleteObject(imageRef);
+                } catch (error) {
+                    console.warn(`Failed to delete image ${imageUrl}:`, error);
+                }
+            }
+
             const uploadedImageUrls: string[] = [];
             // Upload new images
             if (data.images && data.images.length > 0) {
@@ -217,7 +227,7 @@ function EditProductForm() {
                 name: data.name,
                 category: data.category,
                 isBestSeller: data.isBestSeller,
-                price: data.price * 100, // Store price in cents
+                price: Math.round(data.price * 100), // Store price in cents
                 quantity: data.quantity,
                 images: finalImageUrls,
                 hint: `${data.name.toLowerCase()} product`,
@@ -345,7 +355,7 @@ function EditProductForm() {
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
                     <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
                     <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+                    <p className="text-xs text-muted-foreground">Add more images. The first image is the default.</p>
                   </div>
                   <input 
                     id="dropzone-file" 
@@ -355,13 +365,6 @@ function EditProductForm() {
                     accept="image/*"
                     disabled={isSubmitting}
                     {...fileRef}
-                    onChange={(e) => {
-                      if (e.target.files) {
-                        const newFiles = Array.from(e.target.files);
-                        const currentFiles = watch('images') || [];
-                        setValue('images', [...currentFiles, ...newFiles], { shouldValidate: true });
-                      }
-                    }}
                   />
                 </label>
               </div>
@@ -507,3 +510,4 @@ export default function EditProductPage() {
     </SidebarProvider>
   );
 }
+
