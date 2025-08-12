@@ -49,7 +49,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} AYN Beauty. All Rights Reserved.</p>
+          <p>&copy; {new Date().getFullYear()} AYN Beauty. All Rights Reserved. sheikhjebran@gmail.com</p>
         </div>
       </div>
     </footer>
