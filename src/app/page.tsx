@@ -173,6 +173,9 @@ export default function Home() {
                 </Card>
               ))}
             </div>
+             <p className="text-center text-sm text-muted-foreground mt-8 max-w-2xl mx-auto">
+                Please be aware that ingredient lists may change or vary from time to time. Please refer to the ingredient list on the product package you receive for the most up to date list of ingredients.
+            </p>
         </section>
       </main>
       <Footer />
