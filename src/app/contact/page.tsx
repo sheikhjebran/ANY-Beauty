@@ -82,10 +82,10 @@ export default function ContactPage() {
                     <div>
                       <h4 className="font-semibold text-foreground">Email</h4>
                       <a
-                        href="mailto:sheikhjebran@gmail.com"
+                        href="mailto:aynbeautyweb@gmail.com"
                         className="hover:text-primary transition-colors"
                       >
-                        sheikhjebran@gmail.com
+                        aynbeautyweb@gmail.com
                       </a>
                     </div>
                   </div>
