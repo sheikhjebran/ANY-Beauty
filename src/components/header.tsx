@@ -1,3 +1,4 @@
+
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -10,6 +11,24 @@ export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const updateCartCount = () => {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const totalItems = cart.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    setCartCount(totalItems);
+  };
+  
+  useEffect(() => {
+    // Initial cart count
+    updateCartCount();
+
+    // Listen for storage changes to update cart count
+    window.addEventListener('storage', updateCartCount);
+
+    return () => {
+      window.removeEventListener('storage', updateCartCount);
+    };
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -71,9 +90,11 @@ export function Header() {
           </Link>
           <Link href="/cart" className="relative" aria-label={`Shopping cart with ${cartCount} items`}>
             <ShoppingBag className="h-8 w-8 text-foreground/80 hover:text-primary transition-colors" />
-            <div className="absolute -top-2 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-              {cartCount}
-            </div>
+            {cartCount > 0 && (
+                <div className="absolute -top-2 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                    {cartCount}
+                </div>
+            )}
           </Link>
         </div>
       </div>

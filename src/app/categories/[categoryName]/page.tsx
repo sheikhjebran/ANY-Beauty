@@ -1,12 +1,14 @@
 
+'use client';
+
 import { Header } from '@/components/header';
 import { MainNav } from '@/components/main-nav';
 import { Footer } from '@/components/footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Image from 'next/image';
-import Link from 'next/link';
+import { ProductCardClient } from '@/components/product-card-client';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Product {
   id: string;
@@ -14,6 +16,8 @@ interface Product {
   price: number;
   images: string[];
   hint?: string;
+  quantity: number;
+  modifiedAt: any;
 }
 
 function formatCategoryName(slug: string): string {
@@ -23,21 +27,33 @@ function formatCategoryName(slug: string): string {
         .join(' & ');
 }
 
-async function getProductsByCategory(categoryName: string): Promise<Product[]> {
-    try {
-        const q = query(collection(db, 'products'), where('category', '==', categoryName));
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-    } catch (error) {
-        console.error(`Error fetching products for category ${categoryName}: `, error);
-        return [];
-    }
-}
-
-export default async function CategoryPage({ params }: { params: { categoryName: string } }) {
+export default function CategoryPage({ params }: { params: { categoryName: string } }) {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
     const categoryName = formatCategoryName(params.categoryName);
-    const products = await getProductsByCategory(categoryName);
-    
+
+    useEffect(() => {
+        async function getProductsByCategory(category: string) {
+            setLoading(true);
+            try {
+                const q = query(collection(db, 'products'), where('category', '==', category));
+                const querySnapshot = await getDocs(q);
+                const fetchedProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+                setProducts(fetchedProducts);
+            } catch (error) {
+                console.error(`Error fetching products for category ${category}: `, error);
+                setProducts([]);
+            } finally {
+                setLoading(false);
+            }
+        }
+        
+        if (categoryName) {
+            getProductsByCategory(categoryName);
+            document.title = `${categoryName} | AYN Beauty`;
+        }
+    }, [categoryName]);
+
     const pageTitle = `${categoryName} Products`;
 
     return (
@@ -50,27 +66,20 @@ export default async function CategoryPage({ params }: { params: { categoryName:
                         {pageTitle}
                     </h1>
 
-                    {products.length > 0 ? (
+                    {loading ? (
+                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <div key={i} className="space-y-4">
+                                    <Skeleton className="aspect-square w-full" />
+                                    <Skeleton className="h-6 w-3/4" />
+                                    <Skeleton className="h-5 w-1/4" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : products.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                             {products.map((product) => (
-                                <Card key={product.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group">
-                                    <CardContent className="p-0">
-                                        <div className="aspect-square overflow-hidden">
-                                            <Image
-                                                src={product.images?.[0] || 'https://placehold.co/400x400.png'}
-                                                alt={product.name}
-                                                width={400}
-                                                height={400}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                data-ai-hint={product.hint}
-                                            />
-                                        </div>
-                                    </CardContent>
-                                    <CardHeader>
-                                        <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                                        <p className="text-lg text-primary font-semibold">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}</p>
-                                    </CardHeader>
-                                </Card>
+                                <ProductCardClient key={product.id} product={product} />
                             ))}
                         </div>
                     ) : (
@@ -84,12 +93,3 @@ export default async function CategoryPage({ params }: { params: { categoryName:
         </div>
     );
 }
-
-export async function generateMetadata({ params }: { params: { categoryName: string } }) {
-  const categoryName = formatCategoryName(params.categoryName);
-  return {
-    title: `${categoryName} | AYN Beauty`,
-    description: `Shop for the best ${categoryName} products at AYN Beauty.`,
-  };
-}
-

@@ -1,13 +1,17 @@
 
+'use client';
+
 import { Header } from '@/components/header';
 import { MainNav } from '@/components/main-nav';
 import { HeroCarousel } from '@/components/hero-carousel';
 import { Footer } from '@/components/footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ProductCardClient } from '@/components/product-card-client';
 import Image from 'next/image';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Product {
   id: string;
@@ -15,28 +19,8 @@ interface Product {
   price: number;
   images: string[];
   hint?: string;
-}
-
-async function getBestSellingProducts(): Promise<Product[]> {
-  try {
-    const q = query(collection(db, 'products'), where('isBestSeller', '==', true), limit(4));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-  } catch (error) {
-    console.error("Error fetching best selling products: ", error);
-    return [];
-  }
-}
-
-async function getNewlyAddedProducts(): Promise<Product[]> {
-   try {
-    const q = query(collection(db, 'products'), orderBy('modifiedAt', 'desc'), limit(10));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-  } catch (error) {
-    console.error("Error fetching newly added products: ", error);
-    return [];
-  }
+  quantity: number;
+  modifiedAt: any;
 }
 
 const categories = [
@@ -48,10 +32,67 @@ const categories = [
   { name: 'Nails', href: '/categories/nails', image: 'https://images.unsplash.com/photo-1604335433189-fcce22e18585?q=80&w=300&h=300&auto=format&fit=crop', hint: 'nail polish' },
 ];
 
-export default async function Home() {
-  const bestSellingProducts = await getBestSellingProducts();
-  const newlyAddedProducts = await getNewlyAddedProducts();
+function ProductSection({ title, fetcher, limit: displayLimit }: { title: string, fetcher: () => Promise<Product[]>, limit?: number }) {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
 
+    useEffect(() => {
+        async function loadProducts() {
+            setLoading(true);
+            const fetchedProducts = await fetcher();
+            setProducts(fetchedProducts);
+            setLoading(false);
+        }
+        loadProducts();
+    }, [fetcher]);
+
+    const displayProducts = displayLimit ? products.slice(0, displayLimit) : products;
+
+    return (
+        <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
+            <h2 className="text-4xl font-headline font-bold text-center mb-12">{title}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {loading 
+                    ? Array.from({ length: 4 }).map((_, i) => (
+                        <div key={i} className="space-y-4">
+                            <Skeleton className="aspect-square w-full" />
+                            <Skeleton className="h-6 w-3/4" />
+                            <Skeleton className="h-5 w-1/4" />
+                        </div>
+                    ))
+                    : displayProducts.map((product) => (
+                        <ProductCardClient key={product.id} product={product} />
+                    ))
+                }
+            </div>
+        </section>
+    );
+}
+
+export default function Home() {
+  
+  async function getBestSellingProducts(): Promise<Product[]> {
+    try {
+      const q = query(collection(db, 'products'), where('isBestSeller', '==', true), limit(4));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    } catch (error) {
+      console.error("Error fetching best selling products: ", error);
+      return [];
+    }
+  }
+
+  async function getNewlyAddedProducts(): Promise<Product[]> {
+    try {
+      const q = query(collection(db, 'products'), orderBy('modifiedAt', 'desc'), limit(10));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    } catch (error) {
+      console.error("Error fetching newly added products: ", error);
+      return [];
+    }
+  }
+  
   return (
     <div className="flex flex-col min-h-screen bg-background font-body">
       <Header />
@@ -93,31 +134,8 @@ export default async function Home() {
           </div>
         </section>
         
-        <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
-            <h2 className="text-4xl font-headline font-bold text-center mb-12">Best selling products</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {bestSellingProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group">
-                   <CardContent className="p-0">
-                    <div className="aspect-square overflow-hidden">
-                      <Image
-                        src={product.images?.[0] || 'https://placehold.co/400x400.png'}
-                        alt={product.name}
-                        width={400}
-                        height={400}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        data-ai-hint={product.hint}
-                      />
-                    </div>
-                  </CardContent>
-                  <CardHeader>
-                    <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                    <p className="text-lg text-primary font-semibold">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}</p>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-        </section>
+        <ProductSection title="Best selling products" fetcher={getBestSellingProducts} limit={4} />
+
         <section className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="w-full aspect-[3/1] overflow-hidden rounded-lg shadow-lg">
             <Image
@@ -130,30 +148,10 @@ export default async function Home() {
             />
           </div>
         </section>
+        
+        <ProductSection title="Newly Added Products" fetcher={getNewlyAddedProducts} limit={8} />
+
         <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
-            <h2 className="text-4xl font-headline font-bold text-center mb-12">Newly Added Products</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {newlyAddedProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group">
-                   <CardContent className="p-0">
-                    <div className="aspect-square overflow-hidden">
-                      <Image
-                        src={product.images?.[0] || 'https://placehold.co/400x400.png'}
-                        alt={product.name}
-                        width={400}
-                        height={400}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        data-ai-hint={product.hint}
-                      />
-                    </div>
-                  </CardContent>
-                  <CardHeader>
-                    <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                    <p className="text-lg text-primary font-semibold">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}</p>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
              <p className="text-center text-sm text-muted-foreground mt-8 max-w-2xl mx-auto">
                 Please be aware that ingredient lists may change or vary from time to time. Please refer to the ingredient list on the product package you receive for the most up to date list of ingredients.
             </p>
@@ -163,5 +161,3 @@ export default async function Home() {
     </div>
   );
 }
-
-    

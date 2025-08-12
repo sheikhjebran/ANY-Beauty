@@ -1,13 +1,14 @@
 
+'use client';
+
 import { Header } from '@/components/header';
 import { MainNav } from '@/components/main-nav';
 import { Footer } from '@/components/footer';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import Image from 'next/image';
-import Link from 'next/link';
+import { ProductCardClient } from '@/components/product-card-client';
 import { db } from '@/lib/firebase';
 import { collection, query, getDocs, orderBy } from 'firebase/firestore';
-import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface Product {
   id: string;
@@ -19,33 +20,39 @@ interface Product {
   modifiedAt: any; // Firestore timestamp
 }
 
-async function getAllProducts(): Promise<Product[]> {
-    try {
-        const q = query(collection(db, 'products'));
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-    } catch (error) {
-        console.error("Error fetching all products: ", error);
-        return [];
-    }
-}
+export default function AllProductsPage() {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
 
-export default async function AllProductsPage() {
-    const products = await getAllProducts();
+    useEffect(() => {
+        async function getAllProducts() {
+            setLoading(true);
+            try {
+                const q = query(collection(db, 'products'));
+                const querySnapshot = await getDocs(q);
+                const fetchedProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+                
+                const sortedProducts = fetchedProducts.sort((a, b) => {
+                    const aIsOutOfStock = a.quantity === 0;
+                    const bIsOutOfStock = b.quantity === 0;
 
-    const sortedProducts = products.sort((a, b) => {
-        const aIsOutOfStock = a.quantity === 0;
-        const bIsOutOfStock = b.quantity === 0;
+                    if (aIsOutOfStock && !bIsOutOfStock) return 1;
+                    if (!aIsOutOfStock && bIsOutOfStock) return -1;
 
-        // If one is out of stock and the other isn't, the out of stock one goes to the end
-        if (aIsOutOfStock && !bIsOutOfStock) return 1;
-        if (!aIsOutOfStock && bIsOutOfStock) return -1;
-
-        // Otherwise, sort by modified date
-        const dateA = a.modifiedAt?.toDate ? a.modifiedAt.toDate() : new Date(0);
-        const dateB = b.modifiedAt?.toDate ? b.modifiedAt.toDate() : new Date(0);
-        return dateB.getTime() - dateA.getTime();
-    });
+                    const dateA = a.modifiedAt?.toDate ? a.modifiedAt.toDate() : new Date(0);
+                    const dateB = b.modifiedAt?.toDate ? b.modifiedAt.toDate() : new Date(0);
+                    return dateB.getTime() - dateA.getTime();
+                });
+                
+                setProducts(sortedProducts);
+            } catch (error) {
+                console.error("Error fetching all products: ", error);
+            } finally {
+                setLoading(false);
+            }
+        }
+        getAllProducts();
+    }, []);
 
     return (
         <div className="flex flex-col min-h-screen bg-background font-body">
@@ -57,30 +64,20 @@ export default async function AllProductsPage() {
                         All Products
                     </h1>
 
-                    {sortedProducts.length > 0 ? (
+                    {loading ? (
+                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                            {Array.from({ length: 12 }).map((_, i) => (
+                                <div key={i} className="space-y-4">
+                                    <Skeleton className="aspect-square w-full" />
+                                    <Skeleton className="h-6 w-3/4" />
+                                    <Skeleton className="h-5 w-1/4" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : products.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {sortedProducts.map((product) => (
-                                <Card key={product.id} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group flex flex-col">
-                                    <CardContent className="p-0 relative">
-                                        <div className="aspect-square overflow-hidden">
-                                            <Image
-                                                src={product.images?.[0] || 'https://placehold.co/400x400.png'}
-                                                alt={product.name}
-                                                width={400}
-                                                height={400}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                                data-ai-hint={product.hint}
-                                            />
-                                        </div>
-                                         {product.quantity === 0 && (
-                                            <Badge variant="destructive" className="absolute top-2 right-2">Out of Stock</Badge>
-                                        )}
-                                    </CardContent>
-                                    <CardHeader className="flex-grow">
-                                        <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-                                        <p className="text-lg text-primary font-semibold">{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}</p>
-                                    </CardHeader>
-                                </Card>
+                            {products.map((product) => (
+                               <ProductCardClient key={product.id} product={product} />
                             ))}
                         </div>
                     ) : (
@@ -94,8 +91,3 @@ export default async function AllProductsPage() {
         </div>
     );
 }
-
-export const metadata = {
-  title: 'All Products | AYN Beauty',
-  description: 'Browse our full collection of premium beauty products.',
-};
