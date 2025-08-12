@@ -110,6 +110,18 @@ export default function Home() {
               ))}
             </div>
         </section>
+        <section className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+          <div className="w-full aspect-[3/1] overflow-hidden rounded-lg shadow-lg">
+            <Image
+              src="https://placehold.co/1200x400.png"
+              alt="Special Offer Banner"
+              width={1200}
+              height={400}
+              className="w-full h-full object-cover"
+              data-ai-hint="beauty promotion"
+            />
+          </div>
+        </section>
       </main>
       <Footer />
     </div>
