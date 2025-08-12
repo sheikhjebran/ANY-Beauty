@@ -34,6 +34,33 @@ const featuredProducts = [
   }
 ];
 
+const newlyAddedProducts = [
+  {
+    name: 'Hydrating Face Mist',
+    price: '$25',
+    image: 'https://placehold.co/400x400.png',
+    hint: 'face mist'
+  },
+  {
+    name: 'Matte Liquid Eyeliner',
+    price: '$28',
+    image: 'https://placehold.co/400x400.png',
+    hint: 'eyeliner product'
+  },
+  {
+    name: 'Exfoliating Body Scrub',
+    price: '$42',
+    image: 'https://placehold.co/400x400.png',
+    hint: 'body scrub'
+  },
+  {
+    name: 'Cuticle Care Oil',
+    price: '$18',
+    image: 'https://placehold.co/400x400.png',
+    hint: 'cuticle oil'
+  }
+];
+
 const categories = [
   { name: 'SkinCare', href: '/categories/skincare', image: 'https://placehold.co/300x300.png', hint: 'skincare products' },
   { name: 'Lips', href: '/categories/lips', image: 'https://placehold.co/300x300.png', hint: 'lipstick makeup' },
@@ -121,6 +148,31 @@ export default function Home() {
               data-ai-hint="beauty promotion"
             />
           </div>
+        </section>
+        <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
+            <h2 className="text-4xl font-headline font-bold text-center mb-12">Newly Added Products</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {newlyAddedProducts.map((product) => (
+                <Card key={product.name} className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group">
+                   <CardContent className="p-0">
+                    <div className="aspect-square overflow-hidden">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        width={400}
+                        height={400}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        data-ai-hint={product.hint}
+                      />
+                    </div>
+                  </CardContent>
+                  <CardHeader>
+                    <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
+                    <p className="text-lg text-primary font-semibold">{product.price}</p>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
         </section>
       </main>
       <Footer />
