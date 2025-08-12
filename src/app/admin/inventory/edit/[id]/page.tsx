@@ -139,12 +139,17 @@ function EditProductForm() {
     }, [productId, reset, router, toast]);
 
     useEffect(() => {
-        const newPreviews = newImageFiles ? Array.from(newImageFiles).filter((file: any) => file instanceof File).map((file: any) => URL.createObjectURL(file)) : [];
-        setImagePreviews([...existingImageUrls, ...newPreviews]);
+        if (newImageFiles) {
+            const newPreviews = Array.from(newImageFiles)
+                .filter((file: unknown): file is File => file instanceof File)
+                .map((file: File) => URL.createObjectURL(file));
+                
+            setImagePreviews([...existingImageUrls, ...newPreviews]);
         
-        return () => {
-            newPreviews.forEach(url => URL.revokeObjectURL(url));
-        };
+            return () => {
+                newPreviews.forEach(url => URL.revokeObjectURL(url));
+            };
+        }
     }, [newImageFiles, existingImageUrls]);
 
 
@@ -161,32 +166,17 @@ function EditProductForm() {
             }
         } else {
              // It's a new file preview, remove it from the form's file list
-            const updatedFiles = Array.from(newImageFiles || []).filter((_, i) => {
-                // This is a bit of a hack, but we find the corresponding blob url to remove
-                const url = URL.createObjectURL(_ as Blob);
-                const match = url === imageUrlToRemove;
-                URL.revokeObjectURL(url); // clean up immediately
-                return !match;
-            });
-
-             // We need to find the correct file to remove from the FileList
-             const dataTransfer = new DataTransfer();
-             const currentFiles = Array.from(watch('images') || []);
-             const urlMap = new Map(currentFiles.map(file => [URL.createObjectURL(file), file]));
-             
-             let fileToRemove: File | undefined;
-             urlMap.forEach((file, url) => {
-                 if (url === imageUrlToRemove) {
-                    fileToRemove = file;
-                 }
-                 URL.revokeObjectURL(url);
+             const currentFiles = Array.from(watch('images') || []) as File[];
+             const updatedFiles = currentFiles.filter(file => {
+                 const url = URL.createObjectURL(file);
+                 const match = url === imageUrlToRemove;
+                 URL.revokeObjectURL(url); // clean up immediately
+                 return !match;
              });
- 
-             if(fileToRemove) {
-                const newFiles = currentFiles.filter(f => f !== fileToRemove);
-                newFiles.forEach(file => dataTransfer.items.add(file));
-                setValue('images', dataTransfer.files, { shouldValidate: true });
-             }
+
+             const dataTransfer = new DataTransfer();
+             updatedFiles.forEach(file => dataTransfer.items.add(file));
+             setValue('images', dataTransfer.files, { shouldValidate: true });
         }
     }
 
@@ -205,15 +195,15 @@ function EditProductForm() {
             }
 
             const uploadedImageUrls: string[] = [];
+            const newFiles = data.images ? Array.from(data.images) : [];
+
             // Upload new images
-            if (data.images && data.images.length > 0) {
-                for (const imageFile of data.images) {
-                    if (imageFile instanceof File) {
-                        const storageRef = ref(storage, `products/${uuidv4()}-${imageFile.name}`);
-                        await uploadBytes(storageRef, imageFile);
-                        const downloadURL = await getDownloadURL(storageRef);
-                        uploadedImageUrls.push(downloadURL);
-                    }
+            for (const imageFile of newFiles) {
+                if (imageFile instanceof File) {
+                    const storageRef = ref(storage, `products/${uuidv4()}-${imageFile.name}`);
+                    await uploadBytes(storageRef, imageFile);
+                    const downloadURL = await getDownloadURL(storageRef);
+                    uploadedImageUrls.push(downloadURL);
                 }
             }
 
@@ -224,14 +214,13 @@ function EditProductForm() {
             }
 
             const updatedProduct = {
-                name: data.name,
-                category: data.category,
-                isBestSeller: data.isBestSeller,
+                ...data,
                 price: Math.round(data.price * 100), // Store price in cents
-                quantity: data.quantity,
                 images: finalImageUrls,
                 hint: `${data.name.toLowerCase()} product`,
             };
+            
+            delete (updatedProduct as any).newImageFiles;
 
             const docRef = doc(db, 'products', productId);
             await updateDoc(docRef, updatedProduct);
@@ -365,6 +354,16 @@ function EditProductForm() {
                     accept="image/*"
                     disabled={isSubmitting}
                     {...fileRef}
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        const newFiles = Array.from(e.target.files);
+                        const currentFiles = watch('images') || [];
+                        const combined = [...currentFiles, ...newFiles];
+                        const dataTransfer = new DataTransfer();
+                        combined.forEach(file => dataTransfer.items.add(file));
+                        setValue('images', dataTransfer.files, { shouldValidate: true });
+                      }
+                    }}
                   />
                 </label>
               </div>
@@ -510,4 +509,3 @@ export default function EditProductPage() {
     </SidebarProvider>
   );
 }
-
