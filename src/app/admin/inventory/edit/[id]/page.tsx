@@ -139,13 +139,18 @@ function EditProductForm() {
 
     useEffect(() => {
         if (newImageFiles && newImageFiles.length > 0) {
-            const newPreviews = Array.from(newImageFiles).map((file: any) => URL.createObjectURL(file as Blob));
+            const newPreviews = Array.from(newImageFiles)
+                .filter(file => file instanceof Blob)
+                .map((file: any) => URL.createObjectURL(file as Blob));
+
             setImagePreviews([...existingImageUrls, ...newPreviews]);
+            
             return () => newPreviews.forEach(url => URL.revokeObjectURL(url));
         } else {
             setImagePreviews(existingImageUrls);
         }
     }, [newImageFiles, existingImageUrls]);
+
 
     const removeImage = async (indexToRemove: number) => {
         const imageUrlToRemove = imagePreviews[indexToRemove];
@@ -193,10 +198,12 @@ function EditProductForm() {
             // Upload new images
             if (data.images && data.images.length > 0) {
                 for (const imageFile of data.images) {
-                    const storageRef = ref(storage, `products/${uuidv4()}-${(imageFile as File).name}`);
-                    await uploadBytes(storageRef, imageFile as Blob);
-                    const downloadURL = await getDownloadURL(storageRef);
-                    uploadedImageUrls.push(downloadURL);
+                    if (imageFile instanceof File) {
+                        const storageRef = ref(storage, `products/${uuidv4()}-${imageFile.name}`);
+                        await uploadBytes(storageRef, imageFile);
+                        const downloadURL = await getDownloadURL(storageRef);
+                        uploadedImageUrls.push(downloadURL);
+                    }
                 }
             }
 
