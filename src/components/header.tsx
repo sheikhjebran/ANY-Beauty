@@ -1,7 +1,7 @@
 "use client"
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingCart, User } from 'lucide-react';
+import { Search, ShoppingBag, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -70,7 +70,7 @@ export function Header() {
             <User className="h-8 w-8 text-foreground/80 hover:text-primary transition-colors" />
           </Link>
           <Link href="/cart" className="relative" aria-label={`Shopping cart with ${cartCount} items`}>
-            <ShoppingCart className="h-8 w-8 text-foreground/80 hover:text-primary transition-colors" />
+            <ShoppingBag className="h-8 w-8 text-foreground/80 hover:text-primary transition-colors" />
             <div className="absolute -top-2 -right-3 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
               {cartCount}
             </div>
