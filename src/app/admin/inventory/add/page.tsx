@@ -41,6 +41,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -57,6 +58,7 @@ const categories = ['Skincare', 'Lips', 'Face', 'Eyes', 'Nails', 'Bath & Body', 
 
 const productSchema = z.object({
   name: z.string().min(1, 'Product name is required'),
+  description: z.string().min(10, 'Description must be at least 10 characters long.'),
   category: z.string().min(1, 'Category is required'),
   isBestSeller: z.boolean(),
   price: z.preprocess(
@@ -80,6 +82,7 @@ function AddProductForm() {
     resolver: zodResolver(productSchema),
     defaultValues: {
         name: '',
+        description: '',
         category: '',
         isBestSeller: false,
         price: 0,
@@ -126,6 +129,7 @@ function AddProductForm() {
       const currentDate = new Date();
       const newProduct = {
         name: data.name,
+        description: data.description,
         category: data.category,
         isBestSeller: data.isBestSeller,
         price: data.price * 100, // Store price in cents
@@ -171,6 +175,18 @@ function AddProductForm() {
               <Label htmlFor="name">Product Name</Label>
               <Input id="name" {...register('name')} placeholder="e.g. Radiant Glow Serum" disabled={isSubmitting} />
               {errors.name && <p className="text-sm text-destructive">{errors.name.message as string}</p>}
+            </div>
+
+            <div className="grid gap-3">
+                <Label htmlFor="description">Product Description</Label>
+                <Textarea 
+                    id="description" 
+                    {...register('description')} 
+                    placeholder="Describe the product, its benefits, and ingredients." 
+                    disabled={isSubmitting}
+                    className="min-h-[100px]"
+                />
+                {errors.description && <p className="text-sm text-destructive">{errors.description.message as string}</p>}
             </div>
 
             <div className="grid gap-3">
