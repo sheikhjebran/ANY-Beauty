@@ -21,6 +21,10 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ['@radix-ui/themes'],
   },
+  devIndicators: {
+    buildActivity: false,
+    prefetch: false,
+  },
 };
 
 export default nextConfig;
