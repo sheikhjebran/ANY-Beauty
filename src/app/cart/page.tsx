@@ -32,14 +32,17 @@ export default function CartPage() {
     // We need to transform the data slightly to have stock available
     const transformedCart = cartData.map((item: any) => ({
       ...item,
-      stock: item.quantity, // The original quantity from product is the stock
-      quantity: item.quantity, // The quantity in cart, might be different
+      stock: item.stock, 
+      quantity: item.quantity, 
     }));
      setCart(transformedCart);
   }, []);
 
   const updateCartInStorage = (updatedCart: CartItem[]) => {
-      const cartForStorage = updatedCart.map(({stock, ...item}) => item);
+      // Before storing, we just need the core product info and cart quantity
+      const cartForStorage = updatedCart.map(({ id, name, price, images, hint, quantity, stock }) => ({
+        id, name, price, images, hint, quantity, stock
+      }));
       localStorage.setItem('cart', JSON.stringify(cartForStorage));
       window.dispatchEvent(new Event('storage'));
       setCart(updatedCart);
@@ -50,7 +53,7 @@ export default function CartPage() {
       if (item.id === productId) {
         const newQuantity = item.quantity + amount;
         if (newQuantity < 1) return item;
-        const productStock = item.stock; // We need original product stock here
+        const productStock = item.stock; 
         if (newQuantity > productStock) {
            toast({
                 variant: 'destructive',
@@ -74,8 +77,28 @@ export default function CartPage() {
       description: 'The item has been removed from your cart.',
     });
   };
-
+  
   const subtotal = cart.reduce((acc, item) => acc + (item.price / 100) * item.quantity, 0);
+
+  const handleCheckout = () => {
+    const phoneNumber = "919945662602";
+    let message = "Hello AYN Beauty, I would like to place an order for the following items:\n\n";
+    
+    cart.forEach(item => {
+        const itemTotal = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format((item.price / 100) * item.quantity);
+        message += `*${item.name}*\n`;
+        message += `Qty: ${item.quantity} x ${new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(item.price / 100)} = ${itemTotal}\n\n`;
+    });
+
+    const formattedTotal = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal);
+    message += `*Grand Total: ${formattedTotal}*\n\n`;
+    message += `Thank you!`;
+
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
+  };
+
 
   return (
     <div className="flex flex-col min-h-screen bg-background font-body">
@@ -151,7 +174,7 @@ export default function CartPage() {
                         <span>Grand Total</span>
                         <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</span>
                     </div>
-                    <Button className="w-full" size="lg">
+                    <Button className="w-full" size="lg" onClick={handleCheckout}>
                         Proceed to Checkout
                     </Button>
                 </div>
