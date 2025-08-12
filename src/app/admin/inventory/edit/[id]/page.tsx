@@ -142,7 +142,7 @@ function EditProductForm() {
 
     useEffect(() => {
       const currentFiles = newImageFiles ? Array.from(newImageFiles).filter((file: unknown): file is File => file instanceof File) : [];
-      if (currentFiles.length === 0) {
+      if (currentFiles.length === 0 && !imagesHaveChanged) { // Only update previews if there are new files or changes
         setImagePreviews([...existingImageUrls]);
         return;
       }
@@ -153,7 +153,7 @@ function EditProductForm() {
       return () => {
           newPreviews.forEach(url => URL.revokeObjectURL(url));
       };
-    }, [newImageFiles, existingImageUrls]);
+    }, [newImageFiles, existingImageUrls, imagesHaveChanged]);
 
 
     const removeImage = (indexToRemove: number) => {
@@ -182,12 +182,17 @@ function EditProductForm() {
         setIsSubmitting(true);
         try {
             const productUpdateData: any = {
-                ...data,
-                price: Math.round(data.price * 100), // Store price in cents
+                name: data.name,
+                category: data.category,
+                isBestSeller: data.isBestSeller,
+                price: Math.round(data.price * 100),
+                quantity: data.quantity,
                 hint: `${data.name.toLowerCase()} product`,
+                images: existingImageUrls, // Start with existing images
             };
-            
+
             if (imagesHaveChanged) {
+                // 1. Delete images marked for removal from Storage
                 for (const imageUrl of imagesToRemove) {
                     try {
                         const imageRef = ref(storage, imageUrl);
@@ -196,10 +201,10 @@ function EditProductForm() {
                         console.warn(`Failed to delete image ${imageUrl}:`, error);
                     }
                 }
-    
+
+                // 2. Upload new images to Storage
                 const uploadedImageUrls: string[] = [];
                 const newFiles = data.images ? Array.from(data.images) : [];
-    
                 for (const imageFile of newFiles) {
                     if (imageFile instanceof File) {
                         const storageRef = ref(storage, `products/${uuidv4()}-${imageFile.name}`);
@@ -208,17 +213,17 @@ function EditProductForm() {
                         uploadedImageUrls.push(downloadURL);
                     }
                 }
-    
-                let finalImageUrls = [...existingImageUrls, ...uploadedImageUrls];
-    
-                if (finalImageUrls.length === 0) {
-                    finalImageUrls.push(`https://placehold.co/400x400.png?text=${encodeURIComponent(data.name)}`);
-                }
-                productUpdateData.images = finalImageUrls;
-            } else {
-                delete productUpdateData.images;
+                
+                // 3. Combine existing (and not removed) and newly uploaded URLs
+                productUpdateData.images = [...existingImageUrls, ...uploadedImageUrls];
+            }
+            
+            // 4. Ensure there's a placeholder if no images exist
+            if (productUpdateData.images.length === 0) {
+                productUpdateData.images.push(`https://placehold.co/400x400.png?text=${encodeURIComponent(data.name)}`);
             }
 
+            // 5. Update Firestore
             const docRef = doc(db, 'products', productId);
             await updateDoc(docRef, productUpdateData);
 
@@ -507,3 +512,5 @@ export default function EditProductPage() {
     </SidebarProvider>
   );
 }
+
+    
