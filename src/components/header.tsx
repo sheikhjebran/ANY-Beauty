@@ -1,16 +1,48 @@
 
 "use client"
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingBag, User } from 'lucide-react';
+import Image from 'next/image';
+import { Search, ShoppingBag, User, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+import debounce from 'lodash.debounce';
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  images: string[];
+  hint?: string;
+}
 
 export function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+
   const searchRef = useRef<HTMLDivElement>(null);
+
+  // Fetch all products once on component mount
+  useEffect(() => {
+    const fetchAllProducts = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "products"));
+        const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        setAllProducts(productsData);
+      } catch (error) {
+        console.error("Error fetching all products: ", error);
+      }
+    };
+    fetchAllProducts();
+  }, []);
 
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem('cart') || '[]');
@@ -19,12 +51,8 @@ export function Header() {
   };
   
   useEffect(() => {
-    // Initial cart count
     updateCartCount();
-
-    // Listen for storage changes to update cart count
     window.addEventListener('storage', updateCartCount);
-
     return () => {
       window.removeEventListener('storage', updateCartCount);
     };
@@ -34,6 +62,8 @@ export function Header() {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchOpen(false);
+        setSearchResults([]);
+        setSearchQuery('');
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -42,11 +72,46 @@ export function Header() {
     };
   }, [searchRef]);
 
+  const performSearch = (query: string) => {
+    if (query.length < 3) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+    setIsSearching(true);
+    const lowercasedQuery = query.toLowerCase();
+    const filteredProducts = allProducts.filter(product =>
+      product.name.toLowerCase().includes(lowercasedQuery) ||
+      product.description.toLowerCase().includes(lowercasedQuery)
+    );
+    setSearchResults(filteredProducts);
+    setIsSearching(false);
+  };
+
+  const debouncedSearch = useCallback(debounce(performSearch, 300), [allProducts]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.length >= 3) {
+      setIsSearching(true);
+      debouncedSearch(query);
+    } else {
+      setSearchResults([]);
+      setIsSearching(false);
+      debouncedSearch.cancel();
+    }
+  };
+  
+  const clearSearch = () => {
+    setSearchQuery('');
+    setSearchResults([]);
+    setIsSearchOpen(false);
+  };
 
   return (
     <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-40 border-b">
       <div className="container mx-auto flex h-20 items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Left Section: Search */}
         <div className="flex items-center w-1/3" ref={searchRef}>
           <div className="relative flex items-center">
             <Button
@@ -61,29 +126,66 @@ export function Header() {
             <div
               className={cn(
                 'absolute left-0 transition-all duration-300 ease-in-out flex items-center',
-                isSearchOpen ? 'w-64 opacity-100' : 'w-0 opacity-0'
+                isSearchOpen ? 'w-64 md:w-80 lg:w-96 opacity-100' : 'w-0 opacity-0'
               )}
             >
-               <Input
+              <Input
                 type="search"
                 placeholder="Search..."
+                value={searchQuery}
+                onChange={handleSearchChange}
                 className={cn(
                   "pl-12 h-10 transition-all duration-300",
                   isSearchOpen ? 'opacity-100' : 'opacity-0'
                 )}
               />
+              {isSearchOpen && searchQuery && (
+                <Button variant="ghost" size="icon" className="absolute right-0 h-10 w-10" onClick={clearSearch}>
+                  <X className="h-4 w-4"/>
+                </Button>
+              )}
             </div>
+             {isSearchOpen && (searchQuery.length >= 3) && (
+              <div className="absolute top-full mt-2 w-64 md:w-80 lg:w-96 bg-background border rounded-md shadow-lg z-50 max-h-96 overflow-y-auto">
+                {isSearching ? (
+                   <div className="flex items-center justify-center p-4">
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                   </div>
+                ) : searchResults.length > 0 ? (
+                  <ul>
+                    {searchResults.map(product => (
+                      <li key={product.id}>
+                        <Link href={`/products/${product.id}`} onClick={clearSearch} className="flex items-center gap-4 p-3 hover:bg-accent transition-colors">
+                          <Image
+                            src={product.images?.[0] || 'https://placehold.co/40x40.png'}
+                            alt={product.name}
+                            width={40}
+                            height={40}
+                            className="rounded-md object-cover"
+                            data-ai-hint={product.hint}
+                          />
+                          <div className="flex-grow">
+                             <p className="font-semibold text-sm">{product.name}</p>
+                             <p className="text-xs text-muted-foreground">{product.category}</p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="p-4 text-sm text-muted-foreground text-center">No products found.</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Center Section: Logo */}
         <div className="flex justify-center w-1/3">
           <Link href="/" className="text-3xl font-headline font-bold text-primary">
             AYN Beauty
           </Link>
         </div>
 
-        {/* Right Section: Icons */}
         <div className="flex items-center justify-end gap-6 w-1/3">
           <Link href="/admin" aria-label="Admin Login">
             <User className="h-8 w-8 text-foreground/80 hover:text-primary transition-colors" />
