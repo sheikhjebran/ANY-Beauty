@@ -22,6 +22,7 @@ const navItems = [
         { name: 'Nails', href: '/categories/nails' },
     ]
   },
+  { name: 'About Us', href: '/about' },
   { name: 'Contact Us', href: '/contact' },
 ];
 
@@ -34,7 +35,7 @@ export function MainNav() {
             <li key={item.name}>
               {item.subItems ? (
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center gap-1 text-lg font-headline text-foreground/70 transition-colors hover:text-primary focus:outline-none">
+                  <DropdownMenuTrigger className="flex items-center gap-1 font-headline text-lg text-foreground/70 transition-colors hover:text-primary focus:outline-none">
                     {item.name}
                     <ChevronDown className="h-4 w-4" />
                   </DropdownMenuTrigger>
@@ -49,7 +50,7 @@ export function MainNav() {
               ) : (
                 <Link
                   href={item.href}
-                  className="text-lg font-headline text-foreground/70 transition-colors hover:text-primary"
+                  className="font-headline text-lg text-foreground/70 transition-colors hover:text-primary"
                 >
                   {item.name}
                 </Link>
