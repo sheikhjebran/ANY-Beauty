@@ -68,15 +68,36 @@ export function Header() {
         const productsRef = collection(db, "products");
         const lowercasedQuery = searchVal.toLowerCase();
         
-        const q = query(productsRef, where('name', '>=', lowercasedQuery), where('name', '<=', lowercasedQuery + '\uf8ff'));
-        
-        const querySnapshot = await getDocs(productsRef);
-        const allProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-
-        const filteredProducts = allProducts.filter(product =>
-          product.name.toLowerCase().includes(lowercasedQuery) ||
-          product.description.toLowerCase().includes(lowercasedQuery)
+        const nameQuery = query(productsRef, 
+            where('name', '>=', lowercasedQuery), 
+            where('name', '<=', lowercasedQuery + '\uf8ff')
         );
+
+        const descriptionQuery = query(productsRef, 
+            where('description', '>=', lowercasedQuery), 
+            where('description', '<=', lowercasedQuery + '\uf8ff')
+        );
+        
+        const nameSnapshot = await getDocs(nameQuery);
+        const descriptionSnapshot = await getDocs(descriptionQuery);
+
+        const combinedResults: { [key: string]: Product } = {};
+
+        nameSnapshot.docs.forEach(doc => {
+            if (!combinedResults[doc.id]) {
+                combinedResults[doc.id] = { id: doc.id, ...doc.data() } as Product;
+            }
+        });
+        descriptionSnapshot.docs.forEach(doc => {
+             if (!combinedResults[doc.id]) {
+                const productData = { id: doc.id, ...doc.data() } as Product;
+                 if (productData.description.toLowerCase().includes(lowercasedQuery)) {
+                    combinedResults[doc.id] = productData;
+                 }
+            }
+        });
+        
+        const filteredProducts = Object.values(combinedResults);
 
         setSearchResults(filteredProducts);
     } catch (error) {
@@ -182,12 +203,11 @@ export function Header() {
         <div className="flex justify-center w-1/3">
           <Link href="/" className="flex items-center gap-2 text-3xl font-headline font-bold text-primary">
             <Image 
-              src="https://placehold.co/40x40.png"
+              src="/logo.png"
               alt="AYN Beauty Logo"
               width={40}
               height={40}
               className="rounded-full"
-              data-ai-hint="abstract logo"
             />
             <span>AYN Beauty</span>
           </Link>
