@@ -4,8 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Header } from '@/components/header';
+import { LogOut } from 'lucide-react';
 import { Footer } from '@/components/footer';
 
 export default function AdminDashboardPage() {
@@ -31,21 +30,22 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <Header />
-      <main className="flex-grow flex items-center justify-center">
-        <Card className="w-full max-w-2xl shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-3xl text-center font-headline">Admin Dashboard</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-6">
+      <header className="sticky top-0 z-40 w-full border-b bg-background">
+        <div className="container flex h-16 items-center justify-between">
+            <h1 className="text-2xl font-bold text-primary">AYN Beauty Admin</h1>
+            <Button onClick={handleLogout} variant="ghost" size="icon">
+              <LogOut className="h-5 w-5" />
+              <span className="sr-only">Logout</span>
+            </Button>
+        </div>
+      </header>
+      <main className="flex-grow container mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <div className="text-center space-y-4">
+            <h2 className="text-4xl font-headline font-bold">Admin Dashboard</h2>
             <p className="text-lg text-muted-foreground">
               Welcome, Admin! You can manage your store from here.
             </p>
-            <Button onClick={handleLogout} variant="destructive">
-              Logout
-            </Button>
-          </CardContent>
-        </Card>
+        </div>
       </main>
       <Footer />
     </div>
