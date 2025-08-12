@@ -1,6 +1,9 @@
 
+'use client'
+
 import Link from 'next/link';
 import { Instagram, Youtube } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const customerServiceLinks = [
   { name: 'Contact Us', href: '/contact' },
@@ -10,6 +13,12 @@ const customerServiceLinks = [
 ];
 
 export function Footer() {
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
+
   return (
     <footer className="bg-card border-t mt-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -50,7 +59,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} AYN Beauty. All Rights Reserved. Developer: sheikhjebran@gmail.com</p>
+          <p>&copy; {currentYear} AYN Beauty. All Rights Reserved. Developer: sheikhjebran@gmail.com</p>
         </div>
       </div>
     </footer>
