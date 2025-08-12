@@ -143,7 +143,6 @@ function EditProductForm() {
     useEffect(() => {
       const currentFiles = newImageFiles ? Array.from(newImageFiles).filter((file: unknown): file is File => file instanceof File) : [];
       if (currentFiles.length === 0) {
-        // No new files selected, just show existing ones
         setImagePreviews([...existingImageUrls]);
         return;
       }
@@ -161,42 +160,21 @@ function EditProductForm() {
         setImagesHaveChanged(true);
         const imageUrlToRemove = imagePreviews[indexToRemove];
         
-        // Check if it's an existing image url that needs to be deleted from storage
         const existingUrlIndex = existingImageUrls.indexOf(imageUrlToRemove);
         if (existingUrlIndex > -1) {
             setExistingImageUrls(prev => prev.filter(url => url !== imageUrlToRemove));
              if (imageUrlToRemove.includes('firebasestorage.googleapis.com')) {
                 setImagesToRemove(prev => [...prev, imageUrlToRemove]);
             }
+        } else {
+            const fileIndexToRemove = indexToRemove - existingImageUrls.length;
+            const currentFiles = Array.from(watch('images') || []) as File[];
+            const updatedFiles = currentFiles.filter((_, index) => index !== fileIndexToRemove);
+            
+            const dataTransfer = new DataTransfer();
+            updatedFiles.forEach(file => dataTransfer.items.add(file));
+            setValue('images', dataTransfer.files, { shouldValidate: true });
         }
-        
-        // Remove from the preview list
-        setImagePreviews(prev => prev.filter((_, index) => index !== indexToRemove));
-        
-        // Remove from the form's file list if it's a new file
-        const currentFiles = Array.from(watch('images') || []) as File[];
-
-        const isNewFile = (file: File) => {
-          try {
-            const url = URL.createObjectURL(file);
-            URL.revokeObjectURL(url);
-            return url === imageUrlToRemove;
-          } catch (e) {
-            return false;
-          }
-        }
-        
-        const updatedFiles = currentFiles.filter((file, index) => {
-            // A bit of a hacky way to match the file with its preview URL
-            if(indexToRemove >= existingImageUrls.length) {
-                return (indexToRemove - existingImageUrls.length) !== index;
-            }
-            return true;
-        });
-
-        const dataTransfer = new DataTransfer();
-        updatedFiles.forEach(file => dataTransfer.items.add(file));
-        setValue('images', dataTransfer.files, { shouldValidate: true });
     }
 
 
@@ -210,7 +188,6 @@ function EditProductForm() {
             };
             
             if (imagesHaveChanged) {
-                // 1. Delete images marked for removal from storage
                 for (const imageUrl of imagesToRemove) {
                     try {
                         const imageRef = ref(storage, imageUrl);
@@ -220,7 +197,6 @@ function EditProductForm() {
                     }
                 }
     
-                // 2. Upload new images to storage
                 const uploadedImageUrls: string[] = [];
                 const newFiles = data.images ? Array.from(data.images) : [];
     
@@ -233,7 +209,6 @@ function EditProductForm() {
                     }
                 }
     
-                // 3. Construct the final image array
                 let finalImageUrls = [...existingImageUrls, ...uploadedImageUrls];
     
                 if (finalImageUrls.length === 0) {
@@ -241,7 +216,7 @@ function EditProductForm() {
                 }
                 productUpdateData.images = finalImageUrls;
             } else {
-                delete productUpdateData.images; // Don't update images if they haven't changed
+                delete productUpdateData.images;
             }
 
             const docRef = doc(db, 'products', productId);
