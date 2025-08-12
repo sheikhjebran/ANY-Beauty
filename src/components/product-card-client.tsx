@@ -16,6 +16,7 @@ interface Product {
   price: number;
   images: string[];
   description: string;
+  category: string;
   hint?: string;
   quantity: number;
 }
@@ -60,9 +61,10 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
             name: product.name,
             price: product.price,
             images: product.images,
+            category: product.category,
             hint: product.hint,
             quantity: quantity, 
-            stock: product.quantity, // Add stock property
+            stock: product.quantity,
         });
       }
 
