@@ -113,7 +113,7 @@ export default function CartPage() {
   const subtotal = cart.reduce((acc, item) => acc + (item.price / 100) * item.quantity, 0);
 
   const handlePlaceOrder = (values: z.infer<typeof checkoutSchema>) => {
-    const phoneNumber = "919945662602";
+    const phoneNumber = "917019449136";
     let message = "Hello AYN Beauty, I would like to place an order for the following items:\n\n";
 
     message += `*Customer Details:*\n`;
