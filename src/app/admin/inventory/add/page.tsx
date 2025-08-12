@@ -157,7 +157,7 @@ function AddProductForm() {
   const fileRef = register("images");
 
   return (
-    <div className="mx-auto w-full">
+    <div className="w-full">
       <Card>
         <CardHeader>
           <CardTitle>Add New Product</CardTitle>
@@ -235,10 +235,16 @@ function AddProductForm() {
               {errors.images && <p className="text-sm text-destructive">{errors.images.message as string}</p>}
 
               {imagePreviews.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4 mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                     {imagePreviews.map((src, index) => (
                       <div key={index} className="relative group aspect-square">
-                        <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover"/>
+                        <Image 
+                            src={src} 
+                            alt={`Preview ${index}`} 
+                            fill 
+                            sizes="(max-width: 640px) 100vw, 50vw"
+                            className="rounded-md object-cover"
+                        />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <Button variant="destructive" size="icon" type="button" onClick={() => removeImage(index)} disabled={isSubmitting}>
                                 <X className="h-4 w-4" />

@@ -176,7 +176,7 @@ function EditProductForm() {
         setIsSubmitting(true);
         try {
             const productUpdateData: any = {
-                ...data, // Start with all validated form data
+                ...data,
                 price: Math.round(data.price * 100),
                 hint: `${data.name.toLowerCase()} product`,
             };
@@ -184,17 +184,17 @@ function EditProductForm() {
             let finalImageUrls = [...existingImageUrls];
 
             if (imagesHaveChanged) {
-                // 1. Delete images marked for removal from Storage
                 for (const imageUrl of imagesToRemove) {
                     try {
-                        const imageRef = ref(storage, imageUrl);
-                        await deleteObject(imageRef);
+                        if (imageUrl.includes('firebasestorage.googleapis.com')) {
+                           const imageRef = ref(storage, imageUrl);
+                           await deleteObject(imageRef);
+                        }
                     } catch (error) {
                         console.warn(`Failed to delete image ${imageUrl}:`, error);
                     }
                 }
 
-                // 2. Upload new images to Storage
                 const uploadedImageUrls: string[] = [];
                 const newFiles = data.images ? Array.from(data.images) : [];
                 for (const imageFile of newFiles) {
@@ -206,21 +206,15 @@ function EditProductForm() {
                     }
                 }
                 
-                // 3. Combine existing (and not removed) and newly uploaded URLs
                 finalImageUrls = [...existingImageUrls, ...uploadedImageUrls];
             }
             
             productUpdateData.images = finalImageUrls;
 
-            // 4. Ensure there's a placeholder if no images exist
             if (productUpdateData.images.length === 0) {
                 productUpdateData.images.push(`https://placehold.co/400x400.png?text=${encodeURIComponent(data.name)}`);
             }
             
-            delete productUpdateData.images; // We will set it separately
-            productUpdateData.images = finalImageUrls;
-
-            // 5. Update Firestore
             const docRef = doc(db, 'products', productId);
             await updateDoc(docRef, productUpdateData);
 
@@ -373,7 +367,13 @@ function EditProductForm() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
                     {imagePreviews.map((src, index) => (
                       <div key={src} className="relative group aspect-square">
-                        <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover"/>
+                        <Image 
+                            src={src} 
+                            alt={`Preview ${index}`} 
+                            fill 
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="rounded-md object-cover"
+                        />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                             <Button variant="destructive" size="icon" type="button" onClick={() => removeImage(index)} disabled={isSubmitting}>
                                 <X className="h-4 w-4" />
