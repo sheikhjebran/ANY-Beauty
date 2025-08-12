@@ -45,11 +45,21 @@ export default function ContactPage() {
   });
 
   function onSubmit(data: z.infer<typeof contactFormSchema>) {
+    const phoneNumber = "917019449136";
+    let message = "Hello AYN Beauty,\n\nI have a query from the website contact form:\n\n";
+    message += `*Name:* ${data.name}\n`;
+    message += `*Email:* ${data.email}\n`;
+    message += `*Subject:* ${data.subject}\n\n`;
+    message += `*Message:*\n${data.message}`;
+
+    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+    
+    window.open(whatsappUrl, '_blank');
+
     toast({
-      title: 'Form Submitted!',
-      description: 'Thank you for your message. We will get back to you soon.',
+      title: 'Redirecting to WhatsApp',
+      description: 'Please send the pre-filled message.',
     });
-    console.log(data);
     form.reset();
   }
 
