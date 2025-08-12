@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -26,10 +27,6 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     optimizePackageImports: ['@radix-ui/themes'],
-  },
-  devIndicators: {
-    buildActivity: false,
-    prefetch: false,
   },
 };
 
