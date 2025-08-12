@@ -155,131 +155,133 @@ function AddProductForm() {
   const fileRef = register("images");
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Add New Product</CardTitle>
-        <CardDescription>Fill out the details below to add a new product to your inventory.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6">
-          <div className="grid gap-3">
-            <Label htmlFor="name">Product Name</Label>
-            <Input id="name" {...register('name')} placeholder="e.g. Radiant Glow Serum" disabled={isSubmitting} />
-            {errors.name && <p className="text-sm text-destructive">{errors.name.message as string}</p>}
-          </div>
-
-          <div className="grid gap-3">
-            <Label htmlFor="category">Category</Label>
-             <Controller
-                name="category"
-                control={control}
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
-                    <SelectTrigger id="category">
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-            />
-            {errors.category && <p className="text-sm text-destructive">{errors.category.message as string}</p>}
-          </div>
-
-           <div className="grid grid-cols-2 gap-6">
-                <div className="grid gap-3">
-                    <Label htmlFor="price">Price (₹)</Label>
-                    <Input id="price" type="number" {...register('price')} placeholder="e.g. 5999" step="0.01" disabled={isSubmitting} />
-                    {errors.price && <p className="text-sm text-destructive">{errors.price.message as string}</p>}
-                </div>
-                <div className="grid gap-3">
-                    <Label htmlFor="quantity">Quantity</Label>
-                    <Input id="quantity" type="number" {...register('quantity')} placeholder="e.g. 100" disabled={isSubmitting} />
-                    {errors.quantity && <p className="text-sm text-destructive">{errors.quantity.message as string}</p>}
-                </div>
-           </div>
-
-          <div className="grid gap-3">
-            <Label htmlFor="images">Product Images</Label>
-            <div className="flex items-center justify-center w-full">
-              <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted border-border">
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
-                  <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                  <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
-                </div>
-                 <input 
-                  id="dropzone-file" 
-                  type="file" 
-                  multiple 
-                  className="hidden"
-                  accept="image/*"
-                  disabled={isSubmitting}
-                  {...fileRef}
-                  onChange={(e) => {
-                    if (e.target.files) {
-                      const newFiles = Array.from(e.target.files);
-                      const currentFiles = watch('images') || [];
-                      setValue('images', [...currentFiles, ...newFiles], { shouldValidate: true });
-                    }
-                  }}
-                />
-              </label>
+    <div className="mx-auto max-w-4xl">
+      <Card>
+        <CardHeader>
+          <CardTitle>Add New Product</CardTitle>
+          <CardDescription>Fill out the details below to add a new product to your inventory.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="grid gap-6">
+            <div className="grid gap-3">
+              <Label htmlFor="name">Product Name</Label>
+              <Input id="name" {...register('name')} placeholder="e.g. Radiant Glow Serum" disabled={isSubmitting} />
+              {errors.name && <p className="text-sm text-destructive">{errors.name.message as string}</p>}
             </div>
-             {errors.images && <p className="text-sm text-destructive">{errors.images.message as string}</p>}
 
-            {imagePreviews.length > 0 && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                  {imagePreviews.map((src, index) => (
-                    <div key={index} className="relative group aspect-square">
-                      <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover"/>
-                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <Button variant="destructive" size="icon" type="button" onClick={() => removeImage(index)} disabled={isSubmitting}>
-                              <X className="h-4 w-4" />
-                          </Button>
-                      </div>
-                      {index === 0 && (
-                        <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded">
-                          Default
+            <div className="grid gap-3">
+              <Label htmlFor="category">Category</Label>
+              <Controller
+                  name="category"
+                  control={control}
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+                      <SelectTrigger id="category">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+              />
+              {errors.category && <p className="text-sm text-destructive">{errors.category.message as string}</p>}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid gap-3">
+                      <Label htmlFor="price">Price (₹)</Label>
+                      <Input id="price" type="number" {...register('price')} placeholder="e.g. 5999" step="0.01" disabled={isSubmitting} />
+                      {errors.price && <p className="text-sm text-destructive">{errors.price.message as string}</p>}
+                  </div>
+                  <div className="grid gap-3">
+                      <Label htmlFor="quantity">Quantity</Label>
+                      <Input id="quantity" type="number" {...register('quantity')} placeholder="e.g. 100" disabled={isSubmitting} />
+                      {errors.quantity && <p className="text-sm text-destructive">{errors.quantity.message as string}</p>}
+                  </div>
+            </div>
+
+            <div className="grid gap-3">
+              <Label htmlFor="images">Product Images</Label>
+              <div className="flex items-center justify-center w-full">
+                <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted border-border">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <UploadCloud className="w-8 h-8 mb-2 text-muted-foreground" />
+                    <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                    <p className="text-xs text-muted-foreground">PNG, JPG, GIF up to 10MB</p>
+                  </div>
+                  <input 
+                    id="dropzone-file" 
+                    type="file" 
+                    multiple 
+                    className="hidden"
+                    accept="image/*"
+                    disabled={isSubmitting}
+                    {...fileRef}
+                    onChange={(e) => {
+                      if (e.target.files) {
+                        const newFiles = Array.from(e.target.files);
+                        const currentFiles = watch('images') || [];
+                        setValue('images', [...currentFiles, ...newFiles], { shouldValidate: true });
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+              {errors.images && <p className="text-sm text-destructive">{errors.images.message as string}</p>}
+
+              {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+                    {imagePreviews.map((src, index) => (
+                      <div key={index} className="relative group aspect-square">
+                        <Image src={src} alt={`Preview ${index}`} fill className="rounded-md object-cover"/>
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <Button variant="destructive" size="icon" type="button" onClick={() => removeImage(index)} disabled={isSubmitting}>
+                                <X className="h-4 w-4" />
+                            </Button>
                         </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-            )}
-          </div>
+                        {index === 0 && (
+                          <div className="absolute top-1 left-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded">
+                            Default
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+              )}
+            </div>
 
-          <div className="flex items-center gap-4">
-            <Label htmlFor="isBestSeller" className="flex-shrink-0">Best Seller</Label>
-            <Controller
-                name="isBestSeller"
-                control={control}
-                render={({ field }) => (
-                    <Switch
-                        id="isBestSeller"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                        disabled={isSubmitting}
-                    />
-                )}
-            />
-          </div>
+            <div className="flex items-center gap-4">
+              <Controller
+                  name="isBestSeller"
+                  control={control}
+                  render={({ field }) => (
+                      <Switch
+                          id="isBestSeller"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isSubmitting}
+                      />
+                  )}
+              />
+              <Label htmlFor="isBestSeller" className="flex-shrink-0">Mark as Best Seller</Label>
+            </div>
 
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" asChild disabled={isSubmitting}>
-                <Link href="/admin/inventory">Cancel</Link>
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Add Product
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" asChild disabled={isSubmitting}>
+                  <Link href="/admin/inventory">Cancel</Link>
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Add Product
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
@@ -370,7 +372,5 @@ export default function AddProductPage() {
     </SidebarProvider>
   );
 }
-
-    
 
     
