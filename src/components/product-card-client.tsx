@@ -6,9 +6,8 @@ import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Minus, Plus } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
 interface Product {
@@ -32,18 +31,17 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
 
   const handleAddToCart = () => {
     try {
+      if (isOutOfStock) return;
       const cart = JSON.parse(localStorage.getItem('cart') || '[]');
       const existingProductIndex = cart.findIndex((item: any) => item.id === product.id);
 
       if (existingProductIndex > -1) {
-        // We can decide to update quantity or just notify it's already there.
-        // For simplicity, we'll just update the quantity.
         const newQuantity = cart[existingProductIndex].quantity + quantity;
         if (newQuantity > product.quantity) {
              toast({
                 variant: 'destructive',
                 title: 'Not enough stock!',
-                description: `Only ${product.quantity} items available.`,
+                description: `Only ${product.quantity - cart[existingProductIndex].quantity} more items available.`,
             });
             return;
         }
@@ -77,20 +75,20 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
     }
   };
 
-  const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let value = parseInt(e.target.value, 10);
-    if (isNaN(value) || value < 1) {
-      value = 1;
-    }
-    if (value > product.quantity) {
-        value = product.quantity;
+  const adjustQuantity = (amount: number) => {
+    const newQuantity = quantity + amount;
+    if (newQuantity < 1) {
+        setQuantity(1);
+    } else if (newQuantity > product.quantity) {
+        setQuantity(product.quantity);
         toast({
             variant: 'destructive',
             title: 'Limited Stock',
             description: `You can only add up to ${product.quantity} items.`
         })
+    } else {
+        setQuantity(newQuantity);
     }
-    setQuantity(value);
   }
 
   const shortDescription = product.description.length > 100 
@@ -124,16 +122,15 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
       <CardFooter className="flex-col items-start gap-3 w-full">
         <div className="w-full space-y-2">
             <Label htmlFor={`quantity-${product.id}`} className="text-xs font-medium text-muted-foreground">QUANTITY</Label>
-            <Input
-                id={`quantity-${product.id}`}
-                type="number"
-                min="1"
-                max={product.quantity}
-                value={quantity}
-                onChange={handleQuantityChange}
-                className="w-full text-center"
-                disabled={isOutOfStock}
-            />
+             <div className="flex items-center justify-between w-full rounded-md border border-input">
+                <Button variant="ghost" size="icon" className="h-full rounded-r-none" onClick={() => adjustQuantity(-1)} disabled={isOutOfStock || quantity <= 1}>
+                    <Minus className="h-4 w-4" />
+                </Button>
+                <span id={`quantity-${product.id}`} className="font-bold text-lg">{quantity}</span>
+                <Button variant="ghost" size="icon" className="h-full rounded-l-none" onClick={() => adjustQuantity(1)} disabled={isOutOfStock || quantity >= product.quantity}>
+                    <Plus className="h-4 w-4" />
+                </Button>
+            </div>
         </div>
         <Button onClick={handleAddToCart} disabled={isOutOfStock} className="w-full">
             <ShoppingCart className="mr-2 h-4 w-4" />
