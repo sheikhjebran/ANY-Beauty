@@ -69,13 +69,14 @@ function DashboardContent() {
     }, []);
 
     const categoryData = useMemo(() => {
-        const counts = products.reduce((acc, product) => {
-            acc[product.category] = (acc[product.category] || 0) + 1;
+        const quantityPerCategory = products.reduce((acc, product) => {
+            acc[product.category] = (acc[product.category] || 0) + (product.quantity || 0);
             return acc;
         }, {} as { [key: string]: number });
-        return Object.keys(counts).map(category => ({
+        
+        return Object.keys(quantityPerCategory).map(category => ({
             name: category,
-            total: counts[category],
+            total: quantityPerCategory[category],
         }));
     }, [products]);
 
@@ -92,8 +93,8 @@ function DashboardContent() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Card className="col-span-1 lg:col-span-3">
                 <CardHeader>
-                    <CardTitle>Product Category Distribution</CardTitle>
-                    <CardDescription>Number of products in each category.</CardDescription>
+                    <CardTitle>Product Category Quantity</CardTitle>
+                    <CardDescription>Total quantity of products in each category.</CardDescription>
                 </CardHeader>
                 <CardContent className="h-80">
                     <ProductChart data={categoryData} />
