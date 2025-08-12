@@ -21,6 +21,11 @@ export function Footer() {
 
   return (
     <footer className="bg-card border-t mt-16">
+       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
+         <p className="text-center text-sm text-muted-foreground max-w-2xl mx-auto">
+            Please be aware that ingredient lists may change or vary from time to time. Please refer to the ingredient list on the product package you receive for the most up to date list of ingredients.
+        </p>
+      </div>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center md:text-left">
           {/* About Section */}
