@@ -165,10 +165,6 @@ export default function CartPage() {
                         <span>Subtotal</span>
                         <span>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(subtotal)}</span>
                     </div>
-                    <div className="flex justify-between">
-                        <span>Shipping</span>
-                        <span>Free</span>
-                    </div>
                     <Separator />
                     <div className="flex justify-between font-bold text-xl">
                         <span>Grand Total</span>
