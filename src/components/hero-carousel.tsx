@@ -12,9 +12,9 @@ import {
 import Autoplay from "embla-carousel-autoplay"
 
 const banners = [
-    { src: "https://placehold.co/1800x900.png", alt: "Promotional banner 1", hint: "beauty product" },
-    { src: "https://placehold.co/1800x900.png", alt: "Promotional banner 2", hint: "cosmetics model" },
-    { src: "https://placehold.co/1800x900.png", alt: "Promotional banner 3", hint: "skincare routine" },
+    { src: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?q=80&w=1800&h=900&auto=format&fit=crop", alt: "Promotional banner 1", hint: "beauty product" },
+    { src: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1800&h=900&auto=format&fit=crop", alt: "Promotional banner 2", hint: "cosmetics model" },
+    { src: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1800&h=900&auto=format&fit=crop", alt: "Promotional banner 3", hint: "skincare routine" },
 ]
 
 export function HeroCarousel() {
