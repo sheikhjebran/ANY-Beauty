@@ -15,6 +15,7 @@ interface Product {
   name: string;
   price: number;
   images: string[];
+  description: string;
   hint?: string;
   quantity: number;
   modifiedAt: any;

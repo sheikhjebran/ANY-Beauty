@@ -15,6 +15,7 @@ interface Product {
   name: string;
   price: number;
   images: string[];
+  description: string;
   hint?: string;
   quantity: number;
 }
@@ -91,6 +92,10 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
     setQuantity(value);
   }
 
+  const shortDescription = product.description.length > 100 
+    ? `${product.description.substring(0, 100)}...` 
+    : product.description;
+
   return (
     <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 border-none group flex flex-col">
       <CardContent className="p-0 relative">
@@ -110,7 +115,8 @@ export function ProductCardClient({ product }: ProductCardClientProps) {
       </CardContent>
       <CardHeader className="flex-grow">
         <CardTitle className="font-headline text-xl">{product.name}</CardTitle>
-        <p className="text-lg text-primary font-semibold">
+        <p className="text-sm text-muted-foreground mt-2">{shortDescription}</p>
+        <p className="text-lg text-primary font-semibold pt-2">
           {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}
         </p>
       </CardHeader>
