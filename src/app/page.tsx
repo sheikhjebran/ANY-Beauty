@@ -10,25 +10,25 @@ import Link from 'next/link';
 const featuredProducts = [
   {
     name: 'Radiant Glow Serum',
-    price: '$75',
+    price: '₹5999',
     image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'serum bottle'
   },
   {
     name: 'Velvet Touch Lipstick',
-    price: '$32',
+    price: '₹2499',
     image: 'https://images.unsplash.com/photo-1586455122346-6ce18e1a2f9a?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'lipstick product'
   },
   {
     name: 'Silk Finish Foundation',
-    price: '$58',
+    price: '₹4500',
     image: 'https://images.unsplash.com/photo-1620464294339-a78b541604a3?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'foundation cosmetics'
   },
   {
     name: 'Night Repair Cream',
-    price: '$85',
+    price: '₹6800',
     image: 'https://images.unsplash.com/photo-1600868299713-1a2c394874c4?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'face cream'
   }
@@ -37,25 +37,25 @@ const featuredProducts = [
 const newlyAddedProducts = [
   {
     name: 'Hydrating Face Mist',
-    price: '$25',
+    price: '₹1999',
     image: 'https://images.unsplash.com/photo-1563806280034-7c3e5a3a2d83?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'face mist'
   },
   {
     name: 'Matte Liquid Eyeliner',
-    price: '$28',
+    price: '₹2800',
     image: 'https://images.unsplash.com/photo-1629198715873-1a485552424b?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'eyeliner product'
   },
   {
     name: 'Exfoliating Body Scrub',
-    price: '$42',
+    price: '₹4200',
     image: 'https://images.unsplash.com/photo-1628398849787-a8b273b4b74a?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'body scrub'
   },
   {
     name: 'Cuticle Care Oil',
-    price: '$18',
+    price: '₹1800',
     image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=400&h=400&auto=format&fit=crop',
     hint: 'cuticle oil'
   }
@@ -140,7 +140,7 @@ export default function Home() {
         <section className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="w-full aspect-[3/1] overflow-hidden rounded-lg shadow-lg">
             <Image
-              src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&h=400&auto=format&fit=crop"
+              src="https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=1200&h=400&auto=format=fit=crop"
               alt="Special Offer Banner"
               width={1200}
               height={400}

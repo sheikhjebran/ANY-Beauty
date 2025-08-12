@@ -146,7 +146,7 @@ function InventoryContent({products, setProducts}: any) {
                                     />
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(product.price / 100)}
+                                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0 }).format(product.price / 100)}
                                 </TableCell>
                                 <TableCell className="text-right">{product.quantity}</TableCell>
                                 <TableCell className="text-right">

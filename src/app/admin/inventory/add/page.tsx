@@ -131,8 +131,8 @@ function AddProductForm() {
 
            <div className="grid grid-cols-2 gap-6">
                 <div className="grid gap-3">
-                    <Label htmlFor="price">Price (INR)</Label>
-                    <Input id="price" type="number" {...register('price')} placeholder="e.g. 59.99" />
+                    <Label htmlFor="price">Price (₹)</Label>
+                    <Input id="price" type="number" {...register('price')} placeholder="e.g. 5999" />
                     {errors.price && <p className="text-sm text-destructive">{errors.price.message as string}</p>}
                 </div>
                 <div className="grid gap-3">
