@@ -41,6 +41,8 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getAuth, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
+import { app } from '@/lib/firebase';
 
 
 const menuItems = [
@@ -62,6 +64,7 @@ const passwordFormSchema = z.object({
 
 function ProfileContent() {
     const { toast } = useToast();
+    const auth = getAuth(app);
     const form = useForm<z.infer<typeof passwordFormSchema>>({
         resolver: zodResolver(passwordFormSchema),
         defaultValues: {
@@ -72,21 +75,41 @@ function ProfileContent() {
     });
 
     function onSubmit(data: z.infer<typeof passwordFormSchema>) {
-        if (data.oldPassword !== 'admin@123') {
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Your old password is not correct.',
-            });
+        const user = auth.currentUser;
+        if (!user || !user.email) {
+            toast({ variant: 'destructive', title: 'Error', description: 'No user is signed in.' });
             return;
         }
 
-        toast({
-            title: 'Success!',
-            description: 'Your password has been updated successfully.',
+        const credential = EmailAuthProvider.credential(user.email, data.oldPassword);
+
+        reauthenticateWithCredential(user, credential).then(() => {
+            updatePassword(user, data.newPassword).then(() => {
+                toast({
+                    title: 'Success!',
+                    description: 'Your password has been updated successfully.',
+                });
+                form.reset();
+            }).catch((error) => {
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: `Password update failed: ${error.message}`,
+                });
+            });
+        }).catch((error) => {
+            let errorMessage = "An unknown error occurred during re-authentication.";
+             if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+               errorMessage = "Your old password is not correct.";
+             } else {
+                errorMessage = error.message
+             }
+            toast({
+                variant: 'destructive',
+                title: 'Error',
+                description: errorMessage,
+            });
         });
-        console.log(data);
-        form.reset();
     }
     
     return (
@@ -166,6 +189,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
+  const auth = getAuth(app);
 
   useEffect(() => {
     setIsClient(true);
@@ -177,8 +201,12 @@ export default function ProfilePage() {
   }, [router]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('isAdminAuthenticated');
-    router.push('/admin');
+    signOut(auth).then(() => {
+      sessionStorage.removeItem('isAdminAuthenticated');
+      router.push('/admin');
+    }).catch((error) => {
+        console.error("Logout Failed: ", error)
+    });
   };
 
   if (!isClient) {

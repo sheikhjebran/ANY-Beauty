@@ -16,28 +16,40 @@ import Link from "next/link";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { app } from '@/lib/firebase';
 
 function AdminLoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('admin@gmail.com');
+  const [password, setPassword] = useState('admin@123');
   const { toast } = useToast();
   const router = useRouter();
+  const auth = getAuth(app);
 
   const handleSignIn = () => {
-    if (email === 'admin@gmail.com' && password === 'admin@123') {
-      sessionStorage.setItem('isAdminAuthenticated', 'true');
-      toast({
-        title: "Login Successful",
-        description: "Redirecting to dashboard...",
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        // Signed in 
+        sessionStorage.setItem('isAdminAuthenticated', 'true');
+        toast({
+          title: "Login Successful",
+          description: "Redirecting to dashboard...",
+        });
+        router.push('/admin/dashboard');
+      })
+      .catch((error) => {
+        let errorMessage = "An unknown error occurred.";
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+          errorMessage = "Invalid email or password.";
+        } else {
+          errorMessage = error.message;
+        }
+        toast({
+          variant: "destructive",
+          title: "Login Failed",
+          description: errorMessage,
+        });
       });
-      router.push('/admin/dashboard');
-    } else {
-      toast({
-        variant: "destructive",
-        title: "Login Failed",
-        description: "Invalid email or password.",
-      });
-    }
   };
 
   return (

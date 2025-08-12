@@ -24,6 +24,8 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
+import { getAuth, signOut } from 'firebase/auth';
+import { app } from '@/lib/firebase';
 
 const menuItems = [
   { href: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -36,6 +38,7 @@ export default function InventoryPage() {
   const router = useRouter();
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
+  const auth = getAuth(app);
 
   useEffect(() => {
     setIsClient(true);
@@ -47,8 +50,12 @@ export default function InventoryPage() {
   }, [router]);
 
   const handleLogout = () => {
-    sessionStorage.removeItem('isAdminAuthenticated');
-    router.push('/admin');
+    signOut(auth).then(() => {
+      sessionStorage.removeItem('isAdminAuthenticated');
+      router.push('/admin');
+    }).catch((error) => {
+        console.error("Logout failed:", error)
+    });
   };
 
   if (!isClient) {
