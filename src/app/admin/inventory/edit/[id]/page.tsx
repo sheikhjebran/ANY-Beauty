@@ -179,6 +179,7 @@ function EditProductForm() {
                 ...data,
                 price: Math.round(data.price * 100),
                 hint: `${data.name.toLowerCase()} product`,
+                modifiedAt: new Date(),
             };
             
             let finalImageUrls = [...existingImageUrls];
@@ -371,7 +372,7 @@ function EditProductForm() {
                             src={src} 
                             alt={`Preview ${index}`} 
                             fill 
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 33vw"
                             className="rounded-md object-cover"
                         />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
@@ -509,5 +510,7 @@ export default function EditProductPage() {
     </SidebarProvider>
   );
 }
+
+    
 
     

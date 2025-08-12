@@ -123,6 +123,7 @@ function AddProductForm() {
         imageUrls.push(`https://placehold.co/400x400.png?text=${encodeURIComponent(data.name)}`);
       }
 
+      const currentDate = new Date();
       const newProduct = {
         name: data.name,
         category: data.category,
@@ -131,7 +132,8 @@ function AddProductForm() {
         quantity: data.quantity,
         images: imageUrls,
         hint: `${data.name.toLowerCase()} product`,
-        createdAt: new Date(),
+        createdAt: currentDate,
+        modifiedAt: currentDate,
       };
 
       await addDoc(collection(db, "products"), newProduct);
@@ -380,3 +382,5 @@ export default function AddProductPage() {
     </SidebarProvider>
   );
 }
+
+    

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Image from 'next/image';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 
 interface Product {
   id: string;
@@ -30,7 +30,7 @@ async function getBestSellingProducts(): Promise<Product[]> {
 
 async function getNewlyAddedProducts(): Promise<Product[]> {
    try {
-    const q = query(collection(db, 'products'), where('isBestSeller', '==', false), limit(4));
+    const q = query(collection(db, 'products'), orderBy('modifiedAt', 'desc'), limit(10));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
   } catch (error) {
@@ -163,3 +163,5 @@ export default async function Home() {
     </div>
   );
 }
+
+    
