@@ -18,6 +18,9 @@ import {
   ArrowRight,
   Loader2,
   FilePenLine,
+  Boxes,
+  Archive,
+  IndianRupee,
 } from 'lucide-react';
 import {
   SidebarProvider,
@@ -68,6 +71,14 @@ function DashboardContent() {
         fetchProducts();
     }, []);
 
+    const dashboardStats = useMemo(() => {
+        const totalProducts = products.length;
+        const totalQuantity = products.reduce((sum, p) => sum + (p.quantity || 0), 0);
+        const inventoryValue = products.reduce((sum, p) => sum + ((p.price || 0) * (p.quantity || 0)), 0);
+        const categoryCount = new Set(products.map(p => p.category)).size;
+        return { totalProducts, totalQuantity, inventoryValue, categoryCount };
+    }, [products]);
+
     const categoryData = useMemo(() => {
         const quantityPerCategory = products.reduce((acc, product) => {
             acc[product.category] = (acc[product.category] || 0) + (product.quantity || 0);
@@ -90,6 +101,51 @@ function DashboardContent() {
     }
 
     return (
+      <div className="grid gap-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Inventory Value</CardTitle>
+                    <IndianRupee className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">
+                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', currencyDisplay: 'symbol', minimumFractionDigits: 0 }).format(dashboardStats.inventoryValue / 100)}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Total value of all items in stock</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+                    <Package className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{dashboardStats.totalProducts}</div>
+                    <p className="text-xs text-muted-foreground">Number of unique products</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Product Categories</CardTitle>
+                    <Archive className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{dashboardStats.categoryCount}</div>
+                    <p className="text-xs text-muted-foreground">Number of unique categories</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Items in Stock</CardTitle>
+                    <Boxes className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{dashboardStats.totalQuantity}</div>
+                    <p className="text-xs text-muted-foreground">Sum of quantities for all products</p>
+                </CardContent>
+            </Card>
+        </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             <Card className="col-span-1 lg:col-span-3">
                 <CardHeader>
@@ -141,6 +197,7 @@ function DashboardContent() {
                 </CardContent>
             </Card>
         </div>
+      </div>
     );
 }
 
