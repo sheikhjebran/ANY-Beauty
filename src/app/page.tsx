@@ -1,6 +1,4 @@
 
-'use client';
-
 import { Header } from '@/components/header';
 import { MainNav } from '@/components/main-nav';
 import { HeroCarousel } from '@/components/hero-carousel';
@@ -10,7 +8,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Youtube } from 'lucide-react';
 
@@ -35,36 +32,46 @@ const categories = [
   { name: 'Nails', href: '/categories/nails', image: '/assets/category/nails.jpg', hint: 'nail polish' },
 ];
 
-function ProductSection({ title, fetcher, limit: displayLimit }: { title: string, fetcher: () => Promise<Product[]>, limit?: number }) {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+async function getBestSellingProducts(): Promise<Product[]> {
+  try {
+    const q = query(collection(db, 'products'), where('isBestSeller', '==', true), limit(4));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+  } catch (error) {
+    console.error("Error fetching best selling products: ", error);
+    return [];
+  }
+}
 
-    useEffect(() => {
-        async function loadProducts() {
-            setLoading(true);
-            const fetchedProducts = await fetcher();
-            setProducts(fetchedProducts);
-            setLoading(false);
-        }
-        loadProducts();
-    }, [fetcher]);
+async function getNewlyAddedProducts(): Promise<Product[]> {
+  try {
+    const q = query(collection(db, 'products'), orderBy('modifiedAt', 'desc'), limit(10));
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+  } catch (error) {
+    console.error("Error fetching newly added products: ", error);
+    return [];
+  }
+}
 
+async function ProductSection({ title, fetcher, limit: displayLimit }: { title: string, fetcher: () => Promise<Product[]>, limit?: number }) {
+    const products = await fetcher();
     const displayProducts = displayLimit ? products.slice(0, displayLimit) : products;
 
     return (
         <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
             <h2 className="text-4xl font-headline font-bold text-center mb-12">{title}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {loading 
-                    ? Array.from({ length: 4 }).map((_, i) => (
+                {displayProducts.length > 0
+                    ? displayProducts.map((product) => (
+                        <ProductCardClient key={product.id} product={product} />
+                    ))
+                    : Array.from({ length: 4 }).map((_, i) => (
                         <div key={i} className="space-y-4">
                             <Skeleton className="aspect-square w-full" />
                             <Skeleton className="h-6 w-3/4" />
                             <Skeleton className="h-5 w-1/4" />
                         </div>
-                    ))
-                    : displayProducts.map((product) => (
-                        <ProductCardClient key={product.id} product={product} />
                     ))
                 }
             </div>
@@ -72,30 +79,7 @@ function ProductSection({ title, fetcher, limit: displayLimit }: { title: string
     );
 }
 
-export default function Home() {
-  
-  async function getBestSellingProducts(): Promise<Product[]> {
-    try {
-      const q = query(collection(db, 'products'), where('isBestSeller', '==', true), limit(4));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-    } catch (error) {
-      console.error("Error fetching best selling products: ", error);
-      return [];
-    }
-  }
-
-  async function getNewlyAddedProducts(): Promise<Product[]> {
-    try {
-      const q = query(collection(db, 'products'), orderBy('modifiedAt', 'desc'), limit(10));
-      const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-    } catch (error) {
-      console.error("Error fetching newly added products: ", error);
-      return [];
-    }
-  }
-  
+export default async function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background font-body">
       <Header />

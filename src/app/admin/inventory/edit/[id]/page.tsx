@@ -484,7 +484,7 @@ export default function EditProductPage() {
                 <SidebarMenuItem key={item.label}>
                   <SidebarMenuButton
                     asChild
-                    isActive={pathname.startsWith('/admin/inventory')}
+                    isActive={pathname.startsWith('/admin/inventory') && item.href.startsWith('/admin/inventory') || pathname === item.href}
                   >
                     <Link href={item.href}>
                       <item.icon />
@@ -529,5 +529,3 @@ export default function EditProductPage() {
     </SidebarProvider>
   );
 }
-
-    

@@ -13,7 +13,7 @@ const customerServiceLinks = [
 ];
 
 export function Footer() {
-  const [currentYear, setCurrentYear] = useState<number | null>(null);
+  const [currentYear, setCurrentYear] = useState<number | string>('');
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear());
@@ -59,7 +59,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
-          <p>&copy; {currentYear || new Date().getFullYear()} AYN Beauty. All Rights Reserved | Developer: sheikhjebran@gmail.com</p>
+          <p>&copy; {currentYear} AYN Beauty. All Rights Reserved | Developer: sheikhjebran@gmail.com</p>
         </div>
       </div>
     </footer>
