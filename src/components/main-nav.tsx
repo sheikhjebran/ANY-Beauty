@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ChevronDown } from 'lucide-react';
-import { useState, useEffect } from 'react';
 
 const navItems = [
   { name: 'Home', href: '/' },
@@ -31,19 +30,13 @@ const navItems = [
 ];
 
 export function MainNav() {
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
   return (
     <nav className="border-b bg-background shadow-sm sticky top-20 z-30">
       <div className="container mx-auto flex justify-center items-center h-12 px-4 sm:px-6 lg:px-8">
         <ul className="flex items-center space-x-6 lg:space-x-10">
           {navItems.map((item) => (
             <li key={item.name}>
-              {item.subItems && isClient ? (
+              {item.subItems ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-1 font-headline text-lg text-foreground/70 transition-colors hover:text-primary focus:outline-none">
                     {item.name}
