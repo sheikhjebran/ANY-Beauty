@@ -12,6 +12,7 @@ import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Youtube } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -126,7 +127,7 @@ export default function Home() {
         <section className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="w-full aspect-[3/1] overflow-hidden rounded-lg shadow-lg">
             <Image
-              src="/assets/banner/banner1.jpg?v=2"
+              src="/assets/banner/banner1.jpg?v=3"
               alt="Special Offer Banner"
               width={1200}
               height={400}
@@ -152,6 +153,33 @@ export default function Home() {
         </section>
         
         <ProductSection title="Newly Added Products" fetcher={getNewlyAddedProducts} limit={8} />
+
+        <section className="bg-muted py-16">
+            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid md:grid-cols-2 gap-12 items-center">
+                    <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg">
+                        <iframe 
+                            src="https://www.youtube.com/embed/Yq4p6pE_i2A" 
+                            title="YouTube video player" 
+                            frameBorder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowFullScreen
+                            className="w-full h-full"
+                        ></iframe>
+                    </div>
+                    <div className="space-y-4">
+                        <h2 className="text-4xl font-headline font-bold text-primary">Discover Our World</h2>
+                        <p className="text-lg text-muted-foreground">
+                            At AYN Beauty, we're more than just a store. We are passionate curators of fine beauty products from across the globe. Watch our story and see why our licensed aesthetician-led approach makes all the difference in finding the perfect skincare for you.
+                        </p>
+                         <Link href="https://youtube.com/@yamenshariff998?si=-Sswkf7comZN2dIO" className="inline-flex items-center gap-2 text-lg font-semibold text-primary hover:underline">
+                            <Youtube />
+                            <span>Visit our Channel</span>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
              <p className="text-center text-sm text-muted-foreground mt-8 max-w-2xl mx-auto">
