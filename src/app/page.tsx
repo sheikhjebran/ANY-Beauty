@@ -141,7 +141,7 @@ export default function Home() {
         <section className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
           <div className="w-full aspect-[3/1] overflow-hidden rounded-lg shadow-lg">
             <Image
-              src="/assets/banner/banner2.jpg"
+              src="/assets/banner/banner2.jpg?v=2"
               alt="Special Offer Banner"
               width={1200}
               height={400}
