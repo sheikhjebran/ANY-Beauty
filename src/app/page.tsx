@@ -1,4 +1,6 @@
 
+'use server';
+
 import { Header } from '@/components/header';
 import { MainNav } from '@/components/main-nav';
 import { HeroCarousel } from '@/components/hero-carousel';
