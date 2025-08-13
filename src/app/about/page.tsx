@@ -27,7 +27,7 @@ export default function AboutPage() {
             </div>
             <div className="aspect-w-1 aspect-h-1">
                 <Image
-                    src="https://placehold.co/600x600.png"
+                    src="/assets/logo/logo.png"
                     alt="About AYN Beauty"
                     width={600}
                     height={600}
