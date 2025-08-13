@@ -159,7 +159,7 @@ export default function Home() {
                 <div className="grid md:grid-cols-2 gap-12 items-center">
                     <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg">
                         <iframe 
-                            src="https://www.youtube.com/embed/Yq4p6pE_i2A" 
+                            src="https://www.youtube.com/embed/E6RPyVqGjbQ" 
                             title="YouTube video player" 
                             frameBorder="0" 
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
