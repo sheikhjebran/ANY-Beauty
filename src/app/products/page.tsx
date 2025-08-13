@@ -19,7 +19,8 @@ interface Product {
   category: string;
   hint?: string;
   quantity: number;
-  modifiedAt: any; // Firestore timestamp
+  modifiedAt: string | null;
+  createdAt?: string | null;
 }
 
 export default function AllProductsPage() {
@@ -32,7 +33,15 @@ export default function AllProductsPage() {
             try {
                 const q = query(collection(db, 'products'));
                 const querySnapshot = await getDocs(q);
-                const fetchedProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+                const fetchedProducts = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        modifiedAt: data.modifiedAt?.toDate?.() ? data.modifiedAt.toDate().toISOString() : null,
+                        createdAt: data.createdAt?.toDate?.() ? data.createdAt.toDate().toISOString() : null
+                    } as Product;
+                });
                 
                 const sortedProducts = fetchedProducts.sort((a, b) => {
                     const aIsOutOfStock = a.quantity === 0;
@@ -41,8 +50,8 @@ export default function AllProductsPage() {
                     if (aIsOutOfStock && !bIsOutOfStock) return 1;
                     if (!aIsOutOfStock && bIsOutOfStock) return -1;
 
-                    const dateA = a.modifiedAt?.toDate ? a.modifiedAt.toDate() : new Date(0);
-                    const dateB = b.modifiedAt?.toDate ? b.modifiedAt.toDate() : new Date(0);
+                    const dateA = a.modifiedAt ? new Date(a.modifiedAt) : new Date(0);
+                    const dateB = b.modifiedAt ? new Date(b.modifiedAt) : new Date(0);
                     return dateB.getTime() - dateA.getTime();
                 });
                 

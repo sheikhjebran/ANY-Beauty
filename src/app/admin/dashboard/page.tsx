@@ -60,7 +60,15 @@ function DashboardContent() {
             try {
                 const q = query(collection(db, "products"), orderBy("createdAt", "desc"));
                 const querySnapshot = await getDocs(q);
-                const productsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                const productsData = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        ...data,
+                        modifiedAt: data.modifiedAt?.toDate?.() ? data.modifiedAt.toDate().toISOString() : null,
+                        createdAt: data.createdAt?.toDate?.() ? data.createdAt.toDate().toISOString() : null
+                    };
+                });
                 setProducts(productsData);
             } catch (error) {
                 console.error("Error fetching products: ", error);

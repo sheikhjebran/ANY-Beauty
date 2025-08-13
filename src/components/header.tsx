@@ -18,6 +18,8 @@ interface Product {
   category: string;
   images: string[];
   hint?: string;
+  modifiedAt: string | null;
+  createdAt?: string | null;
 }
 
 export function Header() {
@@ -85,12 +87,24 @@ export function Header() {
 
         nameSnapshot.docs.forEach(doc => {
             if (!combinedResults[doc.id]) {
-                combinedResults[doc.id] = { id: doc.id, ...doc.data() } as Product;
+                const data = doc.data();
+                combinedResults[doc.id] = {
+                    id: doc.id,
+                    ...data,
+                    modifiedAt: data.modifiedAt?.toDate?.() ? data.modifiedAt.toDate().toISOString() : null,
+                    createdAt: data.createdAt?.toDate?.() ? data.createdAt.toDate().toISOString() : null
+                } as Product;
             }
         });
         descriptionSnapshot.docs.forEach(doc => {
              if (!combinedResults[doc.id]) {
-                const productData = { id: doc.id, ...doc.data() } as Product;
+                const data = doc.data();
+                const productData = {
+                    id: doc.id,
+                    ...data,
+                    modifiedAt: data.modifiedAt?.toDate?.() ? data.modifiedAt.toDate().toISOString() : null,
+                    createdAt: data.createdAt?.toDate?.() ? data.createdAt.toDate().toISOString() : null
+                } as Product;
                  if (productData.description.toLowerCase().includes(lowercasedQuery)) {
                     combinedResults[doc.id] = productData;
                  }

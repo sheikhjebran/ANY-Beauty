@@ -5,6 +5,7 @@ import { Header } from '@/components/header';
 import { MainNav } from '@/components/main-nav';
 import { HeroCarousel } from '@/components/hero-carousel';
 import { Footer } from '@/components/footer';
+import { AboutVideoSection } from '@/components/about-video-section';
 import { ProductCardClient } from '@/components/product-card-client';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -21,7 +22,8 @@ interface Product {
   category: string;
   hint?: string;
   quantity: number;
-  modifiedAt: any;
+  modifiedAt: string | null;
+  createdAt?: string | null;
 }
 
 const categories = [
@@ -37,7 +39,15 @@ async function getBestSellingProducts(): Promise<Product[]> {
   try {
     const q = query(collection(db, 'products'), where('isBestSeller', '==', true), limit(4));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        modifiedAt: data.modifiedAt?.toDate?.() ? data.modifiedAt.toDate().toISOString() : null,
+        createdAt: data.createdAt?.toDate?.() ? data.createdAt.toDate().toISOString() : null
+      } as Product;
+    });
   } catch (error) {
     console.error("Error fetching best selling products: ", error);
     return [];
@@ -48,7 +58,15 @@ async function getNewlyAddedProducts(): Promise<Product[]> {
   try {
     const q = query(collection(db, 'products'), orderBy('modifiedAt', 'desc'), limit(10));
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    return querySnapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        modifiedAt: data.modifiedAt?.toDate?.() ? data.modifiedAt.toDate().toISOString() : null,
+        createdAt: data.createdAt?.toDate?.() ? data.createdAt.toDate().toISOString() : null
+      } as Product;
+    });
   } catch (error) {
     console.error("Error fetching newly added products: ", error);
     return [];
@@ -138,6 +156,8 @@ export default async function Home() {
         </section>
         
         <ProductSection title="Newly Added Products" fetcher={getNewlyAddedProducts} limit={8} />
+        
+        <AboutVideoSection />
 
         <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
              <p className="text-center text-sm text-muted-foreground mt-8 max-w-2xl mx-auto">

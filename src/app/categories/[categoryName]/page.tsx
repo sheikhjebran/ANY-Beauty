@@ -18,7 +18,8 @@ interface Product {
   category: string;
   hint?: string;
   quantity: number;
-  modifiedAt: any;
+  modifiedAt: string | null;
+  createdAt?: string | null;
 }
 
 function formatCategoryName(slug: string): string {
@@ -32,7 +33,15 @@ async function getProductsByCategory(category: string): Promise<Product[]> {
     try {
         const q = query(collection(db, 'products'), where('category', '==', category));
         const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+        return querySnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                ...data,
+                modifiedAt: data.modifiedAt?.toDate?.() ? data.modifiedAt.toDate().toISOString() : null,
+                createdAt: data.createdAt?.toDate?.() ? data.createdAt.toDate().toISOString() : null
+            } as Product;
+        });
     } catch (error) {
         console.error(`Error fetching products for category ${category}: `, error);
         return [];
