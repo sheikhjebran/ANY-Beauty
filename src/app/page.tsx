@@ -157,7 +157,7 @@ export default function Home() {
         <section className="bg-muted py-16">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid md:grid-cols-2 gap-12 items-center">
-                    <div className="aspect-w-16 aspect-h-9 rounded-lg overflow-hidden shadow-lg">
+                    <div className="h-[600px] rounded-lg overflow-hidden shadow-lg">
                         <iframe 
                             src="https://www.youtube.com/embed/E6RPyVqGjbQ" 
                             title="YouTube video player" 
