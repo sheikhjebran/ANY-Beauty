@@ -1,5 +1,5 @@
 
-'use server';
+'use client';
 
 import { Header } from '@/components/header';
 import { MainNav } from '@/components/main-nav';
@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState, useCallback } from 'react';
 
 interface Product {
   id: string;
@@ -35,7 +36,7 @@ const categories = [
   { name: 'Nails', href: '/categories/nails', image: '/assets/category/nails.jpg', hint: 'nail polish' },
 ];
 
-async function getBestSellingProducts(): Promise<Product[]> {
+const getBestSellingProducts = async (): Promise<Product[]> => {
   try {
     const q = query(collection(db, 'products'), where('isBestSeller', '==', true), limit(4));
     const querySnapshot = await getDocs(q);
@@ -54,7 +55,7 @@ async function getBestSellingProducts(): Promise<Product[]> {
   }
 }
 
-async function getNewlyAddedProducts(): Promise<Product[]> {
+const getNewlyAddedProducts = async (): Promise<Product[]> => {
   try {
     const q = query(collection(db, 'products'), orderBy('modifiedAt', 'desc'), limit(10));
     const querySnapshot = await getDocs(q);
@@ -73,32 +74,53 @@ async function getNewlyAddedProducts(): Promise<Product[]> {
   }
 }
 
-async function ProductSection({ title, fetcher, limit: displayLimit }: { title: string, fetcher: () => Promise<Product[]>, limit?: number }) {
-    const products = await fetcher();
-    const displayProducts = displayLimit ? products.slice(0, displayLimit) : products;
+function ProductSection({ title, fetcher, limit: displayLimit }: { title: string, fetcher: () => Promise<Product[]>, limit?: number }) {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    return (
-        <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
-            <h2 className="text-4xl font-headline font-bold text-center mb-12">{title}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {displayProducts.length > 0
-                    ? displayProducts.map((product) => (
-                        <ProductCardClient key={product.id} product={product} />
-                    ))
-                    : Array.from({ length: 4 }).map((_, i) => (
+    const memoizedFetcher = useCallback(fetcher, [fetcher]);
+
+    useEffect(() => {
+        const loadProducts = async () => {
+            setLoading(true);
+            const fetchedProducts = await memoizedFetcher();
+            const productsToDisplay = displayLimit ? fetchedProducts.slice(0, displayLimit) : fetchedProducts;
+            setProducts(productsToDisplay);
+            setLoading(false);
+        };
+        loadProducts();
+    }, [memoizedFetcher, displayLimit]);
+
+    if (loading) {
+        return (
+            <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
+                <h2 className="text-4xl font-headline font-bold text-center mb-12">{title}</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {Array.from({ length: displayLimit || 4 }).map((_, i) => (
                         <div key={i} className="space-y-4">
                             <Skeleton className="aspect-square w-full" />
                             <Skeleton className="h-6 w-3/4" />
                             <Skeleton className="h-5 w-1/4" />
                         </div>
-                    ))
-                }
+                    ))}
+                </div>
+            </section>
+        );
+    }
+    
+    return (
+        <section className="container mx-auto py-16 px-4 sm:px-6 lg:px-8">
+            <h2 className="text-4xl font-headline font-bold text-center mb-12">{title}</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {products.map((product) => (
+                    <ProductCardClient key={product.id} product={product} />
+                ))}
             </div>
         </section>
     );
 }
 
-export default async function Home() {
+export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-background font-body">
       <Header />
