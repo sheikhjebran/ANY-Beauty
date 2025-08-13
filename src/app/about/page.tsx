@@ -1,4 +1,6 @@
 
+'use client';
+
 import { Header } from '@/components/header';
 import { MainNav } from '@/components/main-nav';
 import { Footer } from '@/components/footer';
