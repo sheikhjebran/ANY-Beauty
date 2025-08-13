@@ -1,5 +1,5 @@
 
-'use client';
+'use server';
 
 import { Header } from '@/components/header';
 import { MainNav } from '@/components/main-nav';
@@ -7,7 +7,6 @@ import { Footer } from '@/components/footer';
 import { ProductCardClient } from '@/components/product-card-client';
 import { db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface Product {
@@ -29,33 +28,20 @@ function formatCategoryName(slug: string): string {
         .join(' & ');
 }
 
-export default function CategoryPage({ params }: { params: { categoryName: string } }) {
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
+async function getProductsByCategory(category: string): Promise<Product[]> {
+    try {
+        const q = query(collection(db, 'products'), where('category', '==', category));
+        const querySnapshot = await getDocs(q);
+        return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
+    } catch (error) {
+        console.error(`Error fetching products for category ${category}: `, error);
+        return [];
+    }
+}
+
+export default async function CategoryPage({ params }: { params: { categoryName: string } }) {
     const categoryName = formatCategoryName(params.categoryName);
-
-    useEffect(() => {
-        async function getProductsByCategory(category: string) {
-            setLoading(true);
-            try {
-                const q = query(collection(db, 'products'), where('category', '==', category));
-                const querySnapshot = await getDocs(q);
-                const fetchedProducts = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Product));
-                setProducts(fetchedProducts);
-            } catch (error) {
-                console.error(`Error fetching products for category ${category}: `, error);
-                setProducts([]);
-            } finally {
-                setLoading(false);
-            }
-        }
-        
-        if (categoryName) {
-            getProductsByCategory(categoryName);
-            document.title = `${categoryName} | AYN Beauty`;
-        }
-    }, [categoryName]);
-
+    const products = await getProductsByCategory(categoryName);
     const pageTitle = `${categoryName} Products`;
 
     return (
@@ -68,17 +54,7 @@ export default function CategoryPage({ params }: { params: { categoryName: strin
                         {pageTitle}
                     </h1>
 
-                    {loading ? (
-                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {Array.from({ length: 8 }).map((_, i) => (
-                                <div key={i} className="space-y-4">
-                                    <Skeleton className="aspect-square w-full" />
-                                    <Skeleton className="h-6 w-3/4" />
-                                    <Skeleton className="h-5 w-1/4" />
-                                </div>
-                            ))}
-                        </div>
-                    ) : products.length > 0 ? (
+                    {products.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                             {products.map((product) => (
                                 <ProductCardClient key={product.id} product={product} />
