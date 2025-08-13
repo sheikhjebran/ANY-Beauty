@@ -207,7 +207,7 @@ export function Header() {
               alt="AYN Beauty Logo"
               width={60}
               height={60}
-              className="rounded-full h-10 w-10 md:h-14 md:w-14"
+              className="rounded-full"
             />
             <span>AYN Beauty</span>
           </Link>
